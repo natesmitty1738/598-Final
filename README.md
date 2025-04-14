@@ -112,13 +112,6 @@ The main entities in our Prisma schema:
 - Categories
 - Cart Items
 
-## Contributing
-
-1. Create a feature branch
-2. Make your changes
-3. Run tests and linting
-4. Submit a pull request
-
 ## Environment Variables
 
 Required environment variables:
@@ -136,26 +129,12 @@ CLOUDINARY_API_SECRET=
 
 ## Deployment
 
-The application is designed to be deployed on Vercel:
-
-1. Connect your GitHub repository to Vercel
-2. Configure environment variables
-3. Deploy
-
-For other platforms, ensure you:
 - Set up PostgreSQL database
 - Configure environment variables
 - Set up build commands
 - Configure Stripe webhooks
 
 ## Support
-
-For questions or issues:
-1. Check existing GitHub issues
-2. Create a new issue with:
-   - Description of the problem
-   - Steps to reproduce
-   - Expected vs actual behavior
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
@@ -166,7 +145,6 @@ To learn more about Next.js, take a look at the following resources:
 - [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
 - [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
 ## Design System
 
@@ -189,9 +167,5 @@ When creating new components:
 
 ### Theme Guidelines
 
-- **DO NOT** modify the theme colors without design team approval
-- Use the theme toggle for switching between light and dark mode
 - All components should respect both light and dark themes
 - Refer to existing components when creating new UI elements
-
-The theme has been locked to prevent unexpected changes. System theme preference is disabled to provide a consistent experience.
