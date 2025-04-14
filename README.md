@@ -169,3 +169,7 @@ When creating new components:
 
 - All components should respect both light and dark themes
 - Refer to existing components when creating new UI elements
+
+### TODOS
+
+-Add docker config for ease of use
