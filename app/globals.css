@@ -1,0 +1,271 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 
+ * ============================================================================
+ * MERCHX OFFICIAL THEME DEFINITIONS
+ * ============================================================================
+ * 
+ * IMPORTANT: These color values define the official MerchX brand theme.
+ * Do not modify these values without design team approval.
+ * Last updated: 2023-10-31
+ *
+ * Light mode provides a clean, bright interface with subtle shadows
+ * Dark mode offers reduced eye strain with carefully adjusted contrast
+ */
+
+@layer base {
+  :root {
+    /* Light Mode: Official MerchX UI Colors - DO NOT MODIFY */
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
+    --radius: 0.5rem;
+
+    /* Brand Colors: Official MerchX Brand Palette - DO NOT MODIFY */
+    --brand-blue: 214 100% 50%;
+    --brand-purple: 256 100% 65%;
+    --brand-pink: 330 100% 70%;
+    --brand-gradient-start: hsl(214, 100%, 50%);
+    --brand-gradient-mid: hsl(256, 100%, 65%);
+    --brand-gradient-end: hsl(330, 100%, 70%);
+  }
+
+  .dark {
+    /* Dark Mode: Official MerchX UI Colors - DO NOT MODIFY */
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+
+    /* Dark Mode Brand Colors: Official MerchX Brand Palette - DO NOT MODIFY */
+    --brand-blue: 214 100% 60%;
+    --brand-purple: 256 100% 75%;
+    --brand-pink: 330 100% 80%;
+    --brand-gradient-start: hsl(214, 100%, 60%);
+    --brand-gradient-mid: hsl(256, 100%, 75%);
+    --brand-gradient-end: hsl(330, 100%, 80%);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Brand gradient text effect */
+.gradient-text {
+  @apply inline-block text-transparent bg-clip-text;
+  background-image: linear-gradient(
+    to right,
+    var(--brand-gradient-start),
+    var(--brand-gradient-mid),
+    var(--brand-gradient-end)
+  );
+}
+
+/* Modern Card Effects */
+.card {
+  @apply relative overflow-hidden rounded-lg border bg-card p-4 shadow-sm transition-all duration-200;
+  backdrop-filter: blur(8px);
+}
+
+.card::before {
+  content: '';
+  @apply absolute inset-0;
+  background: linear-gradient(
+    45deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.03) 50%,
+    transparent 100%
+  );
+  transition: opacity 0.3s ease;
+}
+
+.dark .card::before {
+  background: linear-gradient(
+    45deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    transparent 100%
+  );
+}
+
+.card:hover {
+  @apply shadow-md;
+  transform: translateY(-2px);
+}
+
+.card:hover::before {
+  opacity: 0.8;
+}
+
+/* Glass Effect for Dark Mode */
+.dark .card {
+  background: rgba(17, 17, 17, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Glowing card effect */
+.glow-card {
+  @apply card relative overflow-hidden;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.03), 
+              0 2px 4px rgba(0, 0, 0, 0.05), 
+              0 12px 24px rgba(0, 0, 0, 0.05);
+}
+
+.glow-card::after {
+  content: "";
+  @apply absolute inset-0 opacity-0 transition-opacity duration-300;
+  background: radial-gradient(
+    800px circle at var(--mouse-x) var(--mouse-y),
+    rgba(var(--brand-blue), 0.1),
+    transparent 40%
+  );
+  z-index: 1;
+  pointer-events: none;
+}
+
+.glow-card:hover::after {
+  @apply opacity-100;
+}
+
+.dark .glow-card {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05), 
+              0 2px 4px rgba(0, 0, 0, 0.3), 
+              0 12px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* Button styles */
+.btn-primary {
+  @apply inline-flex items-center justify-center px-6 py-3 font-medium rounded-md text-white transition-all duration-200;
+  background: linear-gradient(
+    to right,
+    var(--brand-gradient-start),
+    var(--brand-gradient-mid)
+  );
+  box-shadow: 0 4px 14px 0 rgba(var(--brand-blue), 0.2);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(
+    to right,
+    var(--brand-gradient-mid),
+    var(--brand-gradient-end)
+  );
+  box-shadow: 0 6px 20px 0 rgba(var(--brand-purple), 0.23);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 10px 0 rgba(var(--brand-blue), 0.2);
+}
+
+/* Modern Table Styles */
+.modern-table {
+  @apply w-full border-collapse;
+}
+
+.modern-table th {
+  @apply bg-muted/50 px-4 py-3 text-left text-sm font-medium text-muted-foreground;
+}
+
+.modern-table td {
+  @apply border-t border-border/50 px-4 py-3 text-sm;
+}
+
+.dark .modern-table th {
+  @apply bg-secondary/50;
+}
+
+.dark .modern-table td {
+  @apply border-border/20;
+}
+
+/* Chart Container Styles */
+.chart-container {
+  @apply relative overflow-hidden rounded-lg border bg-card p-4;
+  backdrop-filter: blur(8px);
+}
+
+.dark .chart-container {
+  background: rgba(17, 17, 17, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Animated background for hero sections */
+.animated-bg {
+  position: relative;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.animated-bg::before {
+  content: "";
+  position: absolute;
+  inset: -10px;
+  background: linear-gradient(
+    125deg,
+    rgba(var(--brand-blue), 0.2),
+    rgba(var(--brand-purple), 0.2),
+    rgba(var(--brand-pink), 0.2)
+  );
+  background-size: 200% 200%;
+  animation: gradientMove 10s ease infinite;
+  z-index: -1;
+  filter: blur(20px);
+  opacity: 0.4;
+}
+
+.dark .animated-bg::before {
+  opacity: 0.2;
+}
+
+@keyframes gradientMove {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+} 

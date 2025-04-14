@@ -1,0 +1,204 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String           @id @default(cuid())
+  name            String?
+  email           String           @unique
+  password        String
+  role            Role             @default(USER)
+  permissions     Permission[]     @default([])
+  businessId      String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  products        Product[]
+  sales           Sale[]
+  businessProfile BusinessProfile?
+  onboarding      Onboarding?
+  paymentConfig   PaymentConfig?
+  employees       User[]           @relation("BusinessEmployees")
+  employer        User?            @relation("BusinessEmployees", fields: [businessId], references: [id])
+  // Auth.js related fields
+  emailVerified   DateTime?
+  image           String?
+  accounts        Account[]
+  sessions        Session[]
+}
+
+model Product {
+  id            String   @id @default(cuid())
+  sku           String   @unique
+  name          String
+  description   String?
+  unitCost      Float
+  sellingPrice  Float
+  stockQuantity Int
+  location      String?
+  category      String?
+  size          String?
+  color         String?
+  images        Image[]
+  documents     Document[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  createdBy     User      @relation(fields: [userId], references: [id])
+  userId        String
+  sales         SaleItem[]
+}
+
+model Image {
+  id        String   @id @default(cuid())
+  url       String
+  alt       String?
+  product   Product  @relation(fields: [productId], references: [id])
+  productId String
+  createdAt DateTime @default(now())
+}
+
+model Document {
+  id        String   @id @default(cuid())
+  name      String
+  url       String
+  type      String
+  product   Product  @relation(fields: [productId], references: [id])
+  productId String
+  createdAt DateTime @default(now())
+}
+
+model Sale {
+  id            String     @id @default(cuid())
+  totalAmount   Float
+  paymentStatus PaymentStatus
+  paymentMethod PaymentMethod
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  createdBy     User       @relation(fields: [userId], references: [id])
+  userId        String
+  items         SaleItem[]
+}
+
+model SaleItem {
+  id        String   @id @default(cuid())
+  quantity  Int
+  price     Float
+  sale      Sale     @relation(fields: [saleId], references: [id])
+  saleId    String
+  product   Product  @relation(fields: [productId], references: [id])
+  productId String
+}
+
+model BusinessProfile {
+  id           String   @id @default(cuid())
+  businessName String
+  industry     String?
+  address      String?
+  city         String?
+  state        String?
+  zipCode      String?
+  country      String?
+  phone        String?
+  website      String?
+  taxId        String?
+  logo         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id])
+  userId       String   @unique
+}
+
+model Onboarding {
+  id             String   @id @default(cuid())
+  completed      Boolean  @default(false)
+  completedSteps String[] @default([])
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  user           User     @relation(fields: [userId], references: [id])
+  userId         String   @unique
+}
+
+model PaymentConfig {
+  id                   String   @id @default(cuid())
+  acceptCash           Boolean  @default(true)
+  acceptCardPayments   Boolean  @default(false)
+  acceptInvoicePayments Boolean  @default(false)
+  stripeEnabled        Boolean  @default(false)
+  stripeAccountId      String?
+  stripeConnected      Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  user                 User     @relation(fields: [userId], references: [id])
+  userId               String   @unique
+}
+
+enum Role {
+  USER
+  ADMIN
+  MANAGER
+  SALES_REP
+  INVENTORY_MANAGER
+}
+
+enum Permission {
+  MANAGE_INVENTORY
+  MANAGE_SALES
+  VIEW_REPORTS
+  MANAGE_EMPLOYEES
+  MANAGE_SETTINGS
+  VIEW_ANALYTICS
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  CASH
+  CREDIT_CARD
+  DEBIT_CARD
+  STRIPE
+}
+
+// NextAuth.js Models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}

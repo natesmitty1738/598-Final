@@ -34,3 +34,31 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Design System
+
+MerchX uses a consistent design system with predefined themes and components. The theme is defined in several key files:
+
+### Theme Configuration
+
+- **globals.css**: Contains the CSS variables for both light and dark modes
+- **ThemeConstants.tsx**: Provides TypeScript constants for use in components
+- **tailwind.config.js**: Extends Tailwind with our custom colors and animations
+
+### Using the Theme
+
+When creating new components:
+
+1. Use Tailwind classes that reference our theme variables (e.g., `bg-background`, `text-foreground`)
+2. For custom styles, import constants from `ThemeConstants.tsx`
+3. Follow the gradient patterns defined in existing components
+4. Use the predefined card and button styles from globals.css
+
+### Theme Guidelines
+
+- **DO NOT** modify the theme colors without design team approval
+- Use the theme toggle for switching between light and dark mode
+- All components should respect both light and dark themes
+- Refer to existing components when creating new UI elements
+
+The theme has been locked to prevent unexpected changes. System theme preference is disabled to provide a consistent experience.
