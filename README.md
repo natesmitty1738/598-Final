@@ -15,16 +15,20 @@ A modern e-commerce platform built with Next.js, Prisma, and PostgreSQL. MerchX 
 - **Forms**: React Hook Form
 - **Charts**: Recharts
 - **TypeScript** for type safety
+- **Docker** for containerization
 
 ## Prerequisites
 
 Before you begin, ensure you have installed:
 - Node.js (v18 or higher)
-- PostgreSQL (v14 or higher)
+- PostgreSQL (v14 or higher) - *Not needed if using Docker*
 - npm or yarn
 - Git
+- Docker and Docker Compose (optional, for containerized setup)
 
 ## Getting Started
+
+### Option 1: Local Development
 
 1. **Clone the repository**
    ```bash
@@ -65,6 +69,60 @@ Before you begin, ensure you have installed:
    ```
 
    Open [http://localhost:3000](http://localhost:3000) to view the application.
+
+### Option 2: Docker Setup
+
+1. **Clone the repository**
+   ```bash
+   git clone [repository-url]
+   cd merchx
+   ```
+
+2. **Set up environment variables**
+   - Copy `.env.example` to `.env`
+   - Update with your configuration (for Docker, the DATABASE_URL will be `postgresql://postgres:postgres@db:5432/merchx`)
+
+3. **Build and start the Docker containers**
+   ```bash
+   docker compose build
+   docker compose up -d
+   ```
+
+4. **Run migrations and seed the database**
+   ```bash
+   # Run migrations
+   docker compose exec app npx prisma migrate deploy
+   
+   # Seed the database (optional)
+   docker compose exec app npm run seed
+   ```
+
+5. **Access the application**
+   
+   Open [http://localhost:3000](http://localhost:3000) to view the application.
+
+6. **Stop the containers when done**
+   ```bash
+   docker compose down
+   ```
+
+7. **To remove everything including volumes**
+   ```bash
+   docker compose down -v
+   ```
+
+## Docker Configuration
+
+The project includes Docker configuration for easy setup and deployment:
+
+1. **Dockerfile**: Configures the Node.js environment for the application
+2. **docker-compose.yml**: Sets up the application and PostgreSQL database services
+3. **.dockerignore**: Specifies files and directories to exclude from the Docker build
+
+The Docker setup includes:
+- PostgreSQL database running on port 5432
+- Next.js application running on port 3000
+- Data persistence through Docker volumes
 
 ## Project Structure
 
