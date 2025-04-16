@@ -57,6 +57,15 @@ yarn-error.log*
 *.dump
 /postgres-data/
 
+# Docker
+.docker/
+docker-compose.override.yml
+.dockerignore
+
+# Docker volumes
+docker-volumes/
+/data/
+
 # IDE and editor files
 .idea/
 .vscode/
