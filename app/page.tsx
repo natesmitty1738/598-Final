@@ -9,7 +9,6 @@ export default function Home() {
   const { data: session, status } = useSession();
   const isAuthenticated = status === 'authenticated';
 
-  // In a real app, this would come from the database
   const [timeSpentBefore] = useState(14); // hours per week on inventory before using app
   const [timeSpentAfter] = useState(3); // hours per week on inventory after using app
   const [hourlyWage] = useState(20); // average hourly wage for staff
