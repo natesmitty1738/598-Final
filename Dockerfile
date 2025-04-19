@@ -1,7 +1,12 @@
-FROM node:18-slim AS base
+FROM node:18-alpine AS base
 
-# Install dependencies for Prisma
-RUN apt-get update && apt-get install -y openssl ca-certificates
+# Install dependencies for Prisma and other required packages
+RUN apk add --no-cache \
+    openssl \
+    openssl-dev \
+    libc6-compat \
+    ca-certificates \
+    netcat-openbsd
 
 # Install dependencies only when needed
 FROM base AS deps
@@ -30,14 +35,17 @@ WORKDIR /app
 ENV NODE_ENV production
 
 # Create a non-root user
-RUN groupadd -g 1001 nodejs
-RUN useradd -u 1001 -g nodejs -s /bin/bash -m nextjs
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
 
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/scripts/init-db.sh ./scripts/init-db.sh
+
+RUN chmod +x ./scripts/init-db.sh
 
 USER nextjs
 
@@ -45,4 +53,4 @@ EXPOSE 3000
 
 ENV PORT 3000
 
-CMD ["npm", "start"] 
+CMD ["./scripts/init-db.sh", "npm", "start"] 

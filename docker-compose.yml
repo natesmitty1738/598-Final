@@ -5,17 +5,31 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-merchx}
+      POSTGRES_DB: merchx
+      PGDATA: /var/lib/postgresql/data/pgdata
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+      - type: volume
+        source: postgres_data
+        target: /var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
       timeout: 5s
       retries: 5
+
+  migration:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: sh -c "while ! nc -z db 5432; do sleep 1; done; npx prisma migrate deploy"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/merchx
+      - NODE_ENV=development
+    depends_on:
+      db:
+        condition: service_healthy
 
   app:
     build:
@@ -25,12 +39,13 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      db:
-        condition: service_healthy
+      migration:
+        condition: service_completed_successfully
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-merchx}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/merchx
       - NEXTAUTH_URL=http://localhost:3000
-      - PRISMA_BINARY_PLATFORM=debian-openssl-3.0.x
+      - PRISMA_BINARY_PLATFORM=linux-musl
+      - NODE_ENV=production
     env_file:
       - .env
     command: npm start

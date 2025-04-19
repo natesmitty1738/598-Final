@@ -192,6 +192,95 @@ CLOUDINARY_API_SECRET=
 - Set up build commands
 - Configure Stripe webhooks
 
+## Troubleshooting
+
+### PostgreSQL Initialization and Prisma SSL Issues
+
+If you encounter either of these errors when running the application in Docker:
+
+```
+# Error 1: PostgreSQL initialization error
+initdb: error: directory "/var/lib/postgresql/data" exists but is not empty
+
+# Error 2: Prisma SSL error
+PrismaClientInitializationError: Unable to require(`/app/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`).
+Error loading shared library libssl.so.1.1: No such file or directory
+```
+
+These issues are related to Docker configuration. Here's how to fix them:
+
+1. **Update your Dockerfile**
+   
+   Ensure your Dockerfile includes the necessary OpenSSL dependencies:
+   ```dockerfile
+   FROM node:18-alpine AS base
+
+   # Install dependencies for Prisma and other required packages
+   RUN apk add --no-cache \
+       openssl \
+       openssl-dev \
+       libc6-compat \
+       ca-certificates \
+       netcat-openbsd
+   ```
+
+2. **Configure PostgreSQL in docker-compose.yml**
+   
+   Update your docker-compose.yml with the correct PostgreSQL configuration:
+   ```yaml
+   services:
+     db:
+       image: postgres:14
+       environment:
+         POSTGRES_USER: ${POSTGRES_USER:-postgres}
+         POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+         POSTGRES_DB: merchx
+         PGDATA: /var/lib/postgresql/data/pgdata
+       volumes:
+         - type: volume
+           source: postgres_data
+           target: /var/lib/postgresql/data
+       healthcheck:
+         test: ["CMD-SHELL", "pg_isready -U postgres"]
+         interval: 5s
+         timeout: 5s
+         retries: 5
+
+     migration:
+       # ... migration service configuration ...
+       environment:
+         - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/merchx
+         - NODE_ENV=development
+         - PRISMA_BINARY_PLATFORM=linux-musl
+
+     app:
+       # ... app service configuration ...
+       environment:
+         - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/merchx
+         - PRISMA_BINARY_PLATFORM=linux-musl
+   ```
+
+3. **Clean up and restart**
+   ```bash
+   # Stop containers and remove volumes
+   docker compose down -v
+
+   # Rebuild and start containers
+   docker compose up --build
+   ```
+
+Key points to note:
+- The `PGDATA` environment variable ensures PostgreSQL initializes in a clean subdirectory
+- `PRISMA_BINARY_PLATFORM=linux-musl` is required for Alpine Linux
+- The migration service runs before the app service to ensure the database is properly initialized
+- Using `type: volume` for PostgreSQL data ensures proper initialization
+
+If you still encounter issues:
+1. Check that all containers are running: `docker compose ps`
+2. View container logs: `docker compose logs [service_name]`
+3. Ensure your .env file exists and contains the necessary environment variables
+4. Try rebuilding without cache: `docker compose build --no-cache`
+
 ## Support
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
