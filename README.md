@@ -2,6 +2,8 @@
 
 A modern e-commerce platform built with Next.js, Prisma, and PostgreSQL. MerchX provides a robust solution for managing and selling merchandise online.
 
+> **⚠️ Troubleshooting Database Issues**: If you encounter the error `The table 'public.User' does not exist`, check the [Database Troubleshooting Guide](#table-does-not-exist-error) for a quick fix.
+
 ## Tech Stack
 
 - **Frontend**: Next.js 14 (App Router), React 18, TailwindCSS
@@ -93,8 +95,10 @@ Before you begin, ensure you have installed:
    # Run migrations
    docker compose exec app npx prisma migrate deploy
    
-   # Seed the database (optional)
-   docker compose exec app npm run seed
+   # Fix the database (if table not found error)
+   npx prisma migrate dev --name init
+   docker compose exec app npx prisma migrate dev --name init
+   docker compose exec app npx prisma migrate deploy
    ```
 
 5. **Access the application**
@@ -193,6 +197,27 @@ CLOUDINARY_API_SECRET=
 - Configure Stripe webhooks
 
 ## Troubleshooting
+
+### "Table does not exist" Error
+
+If you encounter the error `The table 'public.User' does not exist` after resetting or rebuilding your Docker environment:
+
+1. **Use the automated fix script (Windows)**
+   ```
+   # Run the automated fix script
+   powershell -ExecutionPolicy Bypass -File .\fix-database.ps1
+   ```
+   This script will automatically apply the necessary migrations to recreate your database tables.
+
+2. **Manual fix (any platform)**
+   ```bash
+   # Apply SQL migrations directly to the database
+   docker cp prisma/migrations/20250419000000_init/migration.sql 598-final-db-1:/tmp/
+   docker exec 598-final-db-1 psql -U postgres -d merchx -f /tmp/migration.sql
+   
+   # Restart the app container
+   docker restart 598-final-app-1
+   ```
 
 ### PostgreSQL Initialization and Prisma SSL Issues
 

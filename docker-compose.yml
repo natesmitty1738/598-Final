@@ -19,18 +19,6 @@ services:
       timeout: 5s
       retries: 5
 
-  migration:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    command: sh -c "while ! nc -z db 5432; do sleep 1; done; npx prisma migrate deploy"
-    environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/merchx
-      - NODE_ENV=development
-    depends_on:
-      db:
-        condition: service_healthy
-
   app:
     build:
       context: .
@@ -39,15 +27,18 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      migration:
-        condition: service_completed_successfully
+      db:
+        condition: service_healthy
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/merchx
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
       - NEXTAUTH_URL=http://localhost:3000
       - PRISMA_BINARY_PLATFORM=linux-musl
       - NODE_ENV=production
     env_file:
       - .env
+    # Simply use the command from the Dockerfile
     command: npm start
 
 volumes:

@@ -1,11 +1,15 @@
 #!/bin/bash
 
-# Run the migration SQL directly against the database
-docker compose exec db psql -U postgres -d merchx -c "ALTER TABLE \"User\" ADD COLUMN \"permissions\" \"Permission\"[] DEFAULT '{}';"
+echo "WARNING: This will delete your PostgreSQL database and all data inside it!"
+echo "Press Ctrl+C now to cancel, or Enter to continue..."
+read
+echo "Stopping all containers..."
+docker compose down
+echo "Deleting PostgreSQL database volumes..."
+docker volume rm $(docker volume ls -q | grep postgres) 2>/dev/null || echo "No PostgreSQL volumes found"
+echo "Rebuilding Docker images..."
+docker compose build
+echo "Starting containers..."
+docker compose up -d
 
-# Force Prisma to recognize the schema changes
-docker compose exec app npx prisma db pull
-docker compose exec app npx prisma generate
-
-# Restart the application container
-docker compose restart app 
+echo "environment has been reset with a fresh database."

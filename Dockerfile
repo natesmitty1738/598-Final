@@ -6,7 +6,8 @@ RUN apk add --no-cache \
     openssl-dev \
     libc6-compat \
     ca-certificates \
-    netcat-openbsd
+    netcat-openbsd \
+    postgresql-client
 
 # Install dependencies only when needed
 FROM base AS deps
