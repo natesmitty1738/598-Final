@@ -11,6 +11,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 interface AnalyticsData {
   totalSales: number;
@@ -31,7 +46,14 @@ interface AnalyticsData {
     category: string;
     revenue: number;
   }>;
+  dailySales: Array<{
+    date: string;
+    sales: number;
+    revenue: number;
+  }>;
 }
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
 export default function AnalyticsPage() {
   const { data: session } = useSession();
@@ -126,6 +148,59 @@ export default function AnalyticsPage() {
         </Card>
       </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Daily Sales</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={analyticsData.dailySales}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="sales"
+                    stroke="#8884d8"
+                    name="Number of Sales"
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="revenue"
+                    stroke="#82ca9d"
+                    name="Revenue ($)"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Sales by Category</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={analyticsData.salesByCategory}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="category" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="revenue" fill="#8884d8" name="Revenue ($)" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
@@ -160,57 +235,56 @@ export default function AnalyticsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Low Stock Products</CardTitle>
+            <CardTitle>Revenue Distribution by Category</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {analyticsData.lowStockProducts.map((product) => (
-                <div
-                  key={product.id}
-                  className="flex justify-between items-center"
-                >
-                  <div>
-                    <p className="font-medium">{product.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {product.stockQuantity} units in stock
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle>Sales by Category</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {analyticsData.salesByCategory.map((category) => (
-                <div
-                  key={category.category}
-                  className="flex justify-between items-center"
-                >
-                  <div>
-                    <p className="font-medium">
-                      {category.category || "Uncategorized"}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-medium">
-                      ${category.revenue.toFixed(2)}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Revenue
-                    </p>
-                  </div>
-                </div>
-              ))}
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={analyticsData.salesByCategory}
+                    dataKey="revenue"
+                    nameKey="category"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={100}
+                    label
+                  >
+                    {analyticsData.salesByCategory.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Low Stock Products</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {analyticsData.lowStockProducts.map((product) => (
+              <div
+                key={product.id}
+                className="flex justify-between items-center"
+              >
+                <div>
+                  <p className="font-medium">{product.name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {product.stockQuantity} units in stock
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 } 

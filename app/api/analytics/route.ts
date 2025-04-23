@@ -103,6 +103,32 @@ export async function GET(req: Request) {
       })
     );
 
+    // Calculate daily sales data
+    const dailySales = new Map();
+    const currentDate = new Date();
+    for (let i = 0; i < timeRange; i++) {
+      const date = new Date(currentDate);
+      date.setDate(date.getDate() - i);
+      const dateString = date.toISOString().split('T')[0];
+      dailySales.set(dateString, {
+        date: dateString,
+        sales: 0,
+        revenue: 0,
+      });
+    }
+
+    sales.forEach((sale) => {
+      const dateString = sale.createdAt.toISOString().split('T')[0];
+      if (dailySales.has(dateString)) {
+        const dayData = dailySales.get(dateString);
+        dayData.sales += 1;
+        dayData.revenue += sale.totalAmount;
+      }
+    });
+
+    const dailySalesArray = Array.from(dailySales.values())
+      .sort((a, b) => a.date.localeCompare(b.date));
+
     return NextResponse.json({
       totalSales,
       totalRevenue,
@@ -110,6 +136,7 @@ export async function GET(req: Request) {
       topSellingProducts,
       lowStockProducts,
       salesByCategory,
+      dailySales: dailySalesArray,
     });
   } catch (error) {
     console.error("Error fetching analytics:", error);
