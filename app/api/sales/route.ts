@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 
 export async function POST(req: Request) {
   try {
@@ -66,7 +66,11 @@ export async function POST(req: Request) {
 
     // Update product stock quantities
     for (const item of items) {
-      if (item.product.stockQuantity !== null) {
+      const product = await prisma.product.findUnique({
+        where: { id: item.productId },
+      });
+
+      if (product?.stockQuantity !== null) {
         await prisma.product.update({
           where: { id: item.productId },
           data: {
