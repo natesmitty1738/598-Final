@@ -513,8 +513,8 @@ export default function InventoryPage() {
               <TableCell>{product.name}</TableCell>
               <TableCell>{product.category}</TableCell>
               <TableCell>{product.stockQuantity}</TableCell>
-              <TableCell>${product.unitCost.toFixed(2)}</TableCell>
-              <TableCell>${product.sellingPrice.toFixed(2)}</TableCell>
+              <TableCell>${product.unitCost ? product.unitCost.toFixed(2) : '0.00'}</TableCell>
+              <TableCell>${product.sellingPrice ? product.sellingPrice.toFixed(2) : '0.00'}</TableCell>
               <TableCell>{product.location}</TableCell>
               <TableCell>
                 <div className="flex gap-2">
