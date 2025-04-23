@@ -36,9 +36,9 @@ model Product {
   sku           String   @unique
   name          String
   description   String?
-  unitCost      Float
-  sellingPrice  Float
-  stockQuantity Int
+  unitCost      Float?
+  sellingPrice  Float?
+  stockQuantity Int?
   location      String?
   category      String?
   size          String?

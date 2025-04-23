@@ -4,81 +4,116 @@ import prisma from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
 
 // GET /api/analytics - Get analytics data
-export async function GET(request: Request) {
+export async function GET(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!session?.user) {
+      return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    // Get query parameters
-    const { searchParams } = new URL(request.url);
-    const range = searchParams.get('range') || '30';
-    const days = parseInt(range);
-
-    // Calculate date range
-    const endDate = new Date();
+    const { searchParams } = new URL(req.url);
+    const timeRange = parseInt(searchParams.get("timeRange") || "7");
     const startDate = new Date();
-    startDate.setDate(startDate.getDate() - days);
+    startDate.setDate(startDate.getDate() - timeRange);
 
-    // Get products for the user
-    const products = await prisma.product.findMany({
-      where: { userId: user.id },
-      include: {
-        sales: {
-          include: {
-            sale: true
-          }
-        }
-      }
-    });
-
-    // Get sales for the user
+    // Get sales data
     const sales = await prisma.sale.findMany({
-      where: { 
-        userId: user.id,
+      where: {
+        userId: session.user.id,
         createdAt: {
           gte: startDate,
-          lte: endDate
-        }
+        },
       },
       include: {
         items: {
           include: {
-            product: true
-          }
-        }
-      }
+            product: true,
+          },
+        },
+      },
     });
 
-    // Generate monthly data
-    const monthlyData = generateMonthlyData(products, sales, days);
+    // Calculate total sales and revenue
+    const totalSales = sales.length;
+    const totalRevenue = sales.reduce((sum, sale) => sum + sale.totalAmount, 0);
+    const averageOrderValue = totalSales > 0 ? totalRevenue / totalSales : 0;
 
-    // Generate top waste items
-    const topWasteItems = generateTopWasteItems(products);
+    // Get product sales data
+    const productSales = new Map();
+    sales.forEach((sale) => {
+      sale.items.forEach((item) => {
+        const productId = item.productId;
+        if (!productSales.has(productId)) {
+          productSales.set(productId, {
+            id: productId,
+            name: item.product.name,
+            quantity: 0,
+            revenue: 0,
+          });
+        }
+        const productData = productSales.get(productId);
+        productData.quantity += item.quantity;
+        productData.revenue += item.price * item.quantity;
+      });
+    });
 
-    // Generate annual savings
-    const annualSavings = generateAnnualSavings(monthlyData);
+    // Get top selling products
+    const topSellingProducts = Array.from(productSales.values())
+      .sort((a, b) => b.quantity - a.quantity)
+      .slice(0, 5);
+
+    // Get low stock products
+    const lowStockProducts = await prisma.product.findMany({
+      where: {
+        userId: session.user.id,
+        stockQuantity: {
+          lte: 10, // Products with 10 or fewer units in stock
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        stockQuantity: true,
+      },
+      orderBy: {
+        stockQuantity: "asc",
+      },
+      take: 5,
+    });
+
+    // Calculate sales by category
+    const categorySales = new Map();
+    sales.forEach((sale) => {
+      sale.items.forEach((item) => {
+        const category = item.product.category || "Uncategorized";
+        if (!categorySales.has(category)) {
+          categorySales.set(category, 0);
+        }
+        categorySales.set(
+          category,
+          categorySales.get(category) + item.price * item.quantity
+        );
+      });
+    });
+
+    const salesByCategory = Array.from(categorySales.entries()).map(
+      ([category, revenue]) => ({
+        category,
+        revenue,
+      })
+    );
 
     return NextResponse.json({
-      monthlyData,
-      topWasteItems,
-      annualSavings
+      totalSales,
+      totalRevenue,
+      averageOrderValue,
+      topSellingProducts,
+      lowStockProducts,
+      salesByCategory,
     });
   } catch (error) {
-    console.error('Error fetching analytics data:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch analytics data' },
-      { status: 500 }
-    );
+    console.error("Error fetching analytics:", error);
+    return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
 

@@ -26,6 +26,9 @@ services:
     restart: always
     ports:
       - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
     depends_on:
       db:
         condition: service_healthy
@@ -35,11 +38,10 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
       - NEXTAUTH_URL=http://localhost:3000
       - PRISMA_BINARY_PLATFORM=linux-musl
-      - NODE_ENV=production
+      - NODE_ENV=development
     env_file:
       - .env
-    # Simply use the command from the Dockerfile
-    command: npm start
+    command: npm run dev
 
 volumes:
   postgres_data: 
