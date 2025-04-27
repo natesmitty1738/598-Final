@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
-import { ArrowRight, CheckCircle2, LineChart, Package2, BarChart4 } from 'lucide-react';
+import { ArrowRight, CheckCircle2, LineChart, Package2, BarChart4, AlertTriangle } from 'lucide-react';
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -33,6 +33,55 @@ export default function Home() {
 }
 
 function AuthenticatedHomePage({ session }: { session: any }) {
+  const [activities, setActivities] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchActivities = async () => {
+      try {
+        const response = await fetch('/api/activity');
+        if (response.ok) {
+          const data = await response.json();
+          setActivities(data);
+        }
+      } catch (error) {
+        console.error('Error fetching activities:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchActivities();
+  }, []);
+
+  const formatTimeAgo = (date: Date) => {
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - new Date(date).getTime()) / 1000);
+    
+    if (diffInSeconds < 60) return 'Just now';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+    return `${Math.floor(diffInSeconds / 86400)}d ago`;
+  };
+
+  const getActivityStyles = (color: string) => {
+    const styles = {
+      green: {
+        bg: 'bg-green-500/10',
+        text: 'text-green-600 dark:text-green-400',
+      },
+      blue: {
+        bg: 'bg-blue-500/10',
+        text: 'text-blue-600 dark:text-blue-400',
+      },
+      red: {
+        bg: 'bg-red-500/10',
+        text: 'text-red-600 dark:text-red-400',
+      },
+    };
+    return styles[color as keyof typeof styles] || styles.blue;
+  };
+
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="max-w-5xl mx-auto">
@@ -91,31 +140,36 @@ function AuthenticatedHomePage({ session }: { session: any }) {
         <div className="glow-card p-8 bg-secondary/30 mb-12">
           <h2 className="text-2xl font-bold mb-6">Recent Activity</h2>
           <div className="space-y-4">
-            <div className="p-3 rounded-lg bg-background flex items-center justify-between border border-border/50">
-              <div className="flex items-center">
-                <div className="p-2 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 mr-3">
-                  <Package2 className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="font-medium">New products added</p>
-                  <p className="text-sm text-muted-foreground">5 products were added to inventory</p>
-                </div>
+            {isLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+                <p className="mt-2 text-muted-foreground">Loading activities...</p>
               </div>
-              <span className="text-sm text-muted-foreground">Today</span>
-            </div>
-            
-            <div className="p-3 rounded-lg bg-background flex items-center justify-between border border-border/50">
-              <div className="flex items-center">
-                <div className="p-2 rounded-md bg-green-500/10 text-green-600 dark:text-green-400 mr-3">
-                  <BarChart4 className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="font-medium">Sales updated</p>
-                  <p className="text-sm text-muted-foreground">Monthly report is now available</p>
-                </div>
+            ) : activities.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">No recent activity to show</p>
               </div>
-              <span className="text-sm text-muted-foreground">Yesterday</span>
-            </div>
+            ) : (
+              activities.map((activity, index) => {
+                const styles = getActivityStyles(activity.color);
+                return (
+                  <div key={index} className="p-3 rounded-lg bg-background flex items-center justify-between border border-border/50">
+                    <div className="flex items-center">
+                      <div className={`p-2 rounded-md ${styles.bg} ${styles.text} mr-3`}>
+                        {activity.icon === 'BarChart4' && <BarChart4 className="h-5 w-5" />}
+                        {activity.icon === 'Package2' && <Package2 className="h-5 w-5" />}
+                        {activity.icon === 'AlertTriangle' && <AlertTriangle className="h-5 w-5" />}
+                      </div>
+                      <div>
+                        <p className="font-medium">{activity.title}</p>
+                        <p className="text-sm text-muted-foreground">{activity.description}</p>
+                      </div>
+                    </div>
+                    <span className="text-sm text-muted-foreground">{formatTimeAgo(activity.timestamp)}</span>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
       </div>

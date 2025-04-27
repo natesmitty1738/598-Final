@@ -33,6 +33,34 @@ export async function GET(req: Request) {
       },
     });
 
+    // Get all products for the user
+    const products = await prisma.product.findMany({
+      where: {
+        userId: session.user.id,
+      },
+    });
+
+    // If no sales data exists, return empty state with products
+    if (sales.length === 0) {
+      return NextResponse.json({
+        totalSales: 0,
+        totalRevenue: 0,
+        averageOrderValue: 0,
+        topSellingProducts: [],
+        lowStockProducts: products.filter(p => p.stockQuantity <= 10).slice(0, 5),
+        salesByCategory: [],
+        dailySales: Array.from({ length: timeRange }, (_, i) => {
+          const date = new Date();
+          date.setDate(date.getDate() - i);
+          return {
+            date: date.toISOString().split('T')[0],
+            sales: 0,
+            revenue: 0,
+          };
+        }).sort((a, b) => a.date.localeCompare(b.date)),
+      });
+    }
+
     // Calculate total sales and revenue
     const totalSales = sales.length;
     const totalRevenue = sales.reduce((sum, sale) => sum + sale.totalAmount, 0);
@@ -67,7 +95,7 @@ export async function GET(req: Request) {
       where: {
         userId: session.user.id,
         stockQuantity: {
-          lte: 10, // Products with 10 or fewer units in stock
+          lte: 10,
         },
       },
       select: {
