@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Package, Plus, X, Save } from 'lucide-react';
+import { Package, Plus, X, Save, Image as ImageIcon } from 'lucide-react';
 import FileUpload from '../FileUpload';
 
 interface InventorySetupStepProps {
@@ -177,6 +177,13 @@ export default function InventorySetupStep({ initialData, onComplete }: Inventor
     }));
   };
   
+  const handleImageRemove = (url: string) => {
+    setCurrentProduct(prev => ({
+      ...prev,
+      images: prev.images?.filter(img => img !== url) || [],
+    }));
+  };
+  
   const handleDocumentUpload = (url: string) => {
     setCurrentProduct(prev => ({
       ...prev,
@@ -272,14 +279,29 @@ export default function InventorySetupStep({ initialData, onComplete }: Inventor
           <div className="space-y-3">
             {products.map((product, index) => (
               <div key={index} className="card p-4 flex justify-between items-center">
-                <div>
-                  <h4 className="font-medium">{product.name}</h4>
-                  <div className="text-sm text-muted-foreground">
-                    SKU: {product.sku} | Stock: {product.stockQuantity} | Price: ${
-                      typeof product.sellingPrice === 'string' 
-                      ? parseFloat(product.sellingPrice).toFixed(2) 
-                      : product.sellingPrice.toFixed(2)
-                    }
+                <div className="flex items-center gap-4">
+                  {product.images && product.images.length > 0 ? (
+                    <div className="relative w-16 h-16 rounded-md overflow-hidden">
+                      <img
+                        src={product.images[0]}
+                        alt={product.name}
+                        className="object-cover w-full h-full"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-16 h-16 rounded-md bg-secondary/20 flex items-center justify-center">
+                      <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                  )}
+                  <div>
+                    <h4 className="font-medium">{product.name}</h4>
+                    <div className="text-sm text-muted-foreground">
+                      SKU: {product.sku} | Stock: {product.stockQuantity} | Price: ${
+                        typeof product.sellingPrice === 'string' 
+                        ? parseFloat(product.sellingPrice).toFixed(2) 
+                        : product.sellingPrice.toFixed(2)
+                      }
+                    </div>
                   </div>
                 </div>
                 <button
@@ -377,6 +399,16 @@ export default function InventorySetupStep({ initialData, onComplete }: Inventor
                 placeholder="Category"
               />
             </div>
+          </div>
+          
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-1">Product Images</label>
+            <FileUpload
+              onChange={handleImageUpload}
+              onRemove={handleImageRemove}
+              value={currentProduct.images || []}
+              type="image"
+            />
           </div>
           
           <div className="flex justify-end space-x-4 mt-4">
