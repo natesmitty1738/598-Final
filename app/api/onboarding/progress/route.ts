@@ -2,171 +2,170 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import prisma from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
-import { StepId } from '@/app/services/OnboardingAutomata';
+import { StepId } from '@/app/hooks/useOnboardingAutomata';
 
 export async function POST(request: Request) {
   try {
+    // Extract data carefully to handle potential beacon API requests
+    let requestData;
+    
+    if (request.headers.get('content-type')?.includes('multipart/form-data')) {
+      // This is likely a beacon API request (navigating away)
+      const formData = await request.formData();
+      const stepId = formData.get('stepId') as string;
+      const completedStepsStr = formData.get('completedSteps') as string;
+      const formDataStr = formData.get('formData') as string;
+      
+      try {
+        requestData = {
+          stepId,
+          completedSteps: completedStepsStr ? JSON.parse(completedStepsStr) : [],
+          formData: formDataStr ? JSON.parse(formDataStr) : {}
+        };
+      } catch (e) {
+        console.error('Error parsing form data in beacon request:', e);
+        return new Response(null, { status: 204 }); // Still return success for beacon
+      }
+    } else {
+      // Normal JSON request
+      try {
+        requestData = await request.json();
+      } catch (e) {
+        console.error('Error parsing request JSON:', e);
+        return NextResponse.json(
+          { error: 'Invalid JSON in request body' },
+          { status: 400 }
+        );
+      }
+    }
+    
+    // Check authentication
     const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: 'You must be signed in to save progress' },
+        { status: 401 }
+      );
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    const data = await request.json();
-    const { 
-      stepId, 
-      data: stepData, 
-      allData, 
-      completedSteps 
-    } = data;
-
+    // Get user ID from session
+    const userId = session.user.id;
+    
+    // Validate required fields
+    const { stepId, completedSteps = [], formData } = requestData;
+    
     if (!stepId) {
       return NextResponse.json(
         { error: 'Step ID is required' },
         { status: 400 }
       );
     }
-
-    // Find or create onboarding record
-    let onboarding = await prisma.onboarding.findUnique({
-      where: { userId: user.id },
-    });
-
-    // Process completed steps
-    const newCompletedSteps = completedSteps || 
-      (onboarding ? 
-        [...new Set([...(onboarding.completedSteps as string[]), stepId])] :
-        [stepId]
+    
+    if (!Array.isArray(completedSteps)) {
+      return NextResponse.json(
+        { error: 'Completed steps must be an array' },
+        { status: 400 }
       );
-
-    // Create or update the onboarding record
-    if (!onboarding) {
-      onboarding = await prisma.onboarding.create({
-        data: {
-          userId: user.id,
-          completedSteps: newCompletedSteps,
-          // Set completed to true if all required steps are completed
-          completed: newCompletedSteps.includes('completion')
-        },
-      });
-    } else {
-      // Update onboarding with completed step
-      onboarding = await prisma.onboarding.update({
-        where: { userId: user.id },
-        data: {
-          completedSteps: newCompletedSteps,
-          // Set completed to true if completion step is included
-          completed: newCompletedSteps.includes('completion')
-        },
-      });
     }
-
-    // Process step-specific data if needed
-    if (stepData) {
-      switch (stepId as StepId) {
-        case 'business-profile':
-          // Save business profile data
-          await prisma.businessProfile.upsert({
-            where: { userId: user.id },
-            update: stepData,
-            create: {
-              ...stepData,
-              businessName: stepData.businessName || 'My Business',
-              userId: user.id,
-            },
-          });
-          break;
-
-        case 'inventory-setup':
-          // Save initial inventory items if present
-          if (Array.isArray(stepData) && stepData.length > 0) {
-            // For simplicity, we're not handling bulk create here
-            // In a real app, you'd want to handle this more efficiently
-            for (const item of stepData) {
-              if (item.sku) {
-                await prisma.product.upsert({
-                  where: { sku: item.sku },
-                  update: {
-                    ...item,
-                    userId: user.id
-                  },
-                  create: {
-                    ...item,
-                    userId: user.id
-                  }
-                });
+    
+    // Ensure current step is in completed steps if not already
+    const updatedCompletedSteps = 
+      completedSteps.includes(stepId)
+        ? completedSteps
+        : [...completedSteps, stepId];
+    
+    // Get existing onboarding record
+    const existingOnboarding = await prisma.onboarding.findUnique({
+      where: { userId },
+      include: { stepData: true }
+    });
+    
+    // If no existing record, create a new one with all data
+    if (!existingOnboarding) {
+      await prisma.onboarding.create({
+        data: {
+          userId,
+          completedSteps: updatedCompletedSteps,
+          completed: updatedCompletedSteps.includes('completion'),
+          ...(formData ? {
+            stepData: {
+              create: {
+                stepId,
+                data: JSON.stringify(formData)
               }
             }
-          }
-          break;
-
-        case 'payment-setup':
-          // Save payment configuration
-          await prisma.paymentConfig.upsert({
-            where: { userId: user.id },
-            update: stepData,
-            create: {
-              ...stepData,
-              userId: user.id,
-            },
+          } : {})
+        }
+      });
+      
+      return NextResponse.json({ 
+        success: true, 
+        message: 'Initial progress saved'
+      });
+    }
+    
+    // If the record exists, check if we need to update it
+    const isAlreadyCompleted = existingOnboarding.completedSteps.includes(stepId);
+    const dataHasChanged = formData && JSON.stringify(formData) !== 
+      existingOnboarding.stepData.find(sd => sd.stepId === stepId)?.data;
+    
+    // Only update if something has changed
+    if (!isAlreadyCompleted || dataHasChanged) {
+      // Get the onboarding ID
+      const onboardingId = existingOnboarding.id;
+      
+      // Update the onboarding record
+      await prisma.onboarding.update({
+        where: { id: onboardingId },
+        data: {
+          completedSteps: updatedCompletedSteps,
+          completed: updatedCompletedSteps.includes('completion')
+        }
+      });
+      
+      // Update step data if provided
+      if (formData) {
+        // Check if step data exists
+        const existingStepData = existingOnboarding.stepData.find(sd => sd.stepId === stepId);
+        
+        if (existingStepData) {
+          // Update existing step data
+          await prisma.stepData.update({
+            where: { id: existingStepData.id },
+            data: { data: JSON.stringify(formData) }
           });
-          break;
-
-        default:
-          // For other steps, no specific action needed
-          break;
+        } else {
+          // Create new step data
+          await prisma.stepData.create({
+            data: {
+              onboardingId,
+              stepId,
+              data: JSON.stringify(formData)
+            }
+          });
+        }
       }
     }
-
-    // Gather user data to return
-    const userData = {
-      businessProfile: null,
-      initialInventory: [],
-      paymentSetup: null,
-    };
-
-    // Fetch business profile if it exists
-    const businessProfile = await prisma.businessProfile.findUnique({
-      where: { userId: user.id }
-    });
-    if (businessProfile) {
-      userData.businessProfile = businessProfile;
-    }
-
-    // Fetch payment config if it exists
-    const paymentConfig = await prisma.paymentConfig.findUnique({
-      where: { userId: user.id }
-    });
-    if (paymentConfig) {
-      userData.paymentSetup = paymentConfig;
-    }
-
-    // Only fetch inventory if needed for initial setup
-    if (stepId === 'inventory-setup') {
-      const products = await prisma.product.findMany({
-        where: { userId: user.id },
-        take: 10, // Limit to recent items for efficiency
-        orderBy: { createdAt: 'desc' }
-      });
-      userData.initialInventory = products;
-    }
-
+    
     return NextResponse.json({ 
       success: true, 
-      onboarding,
-      userData
+      message: 'Progress saved successfully',
+      completedSteps: updatedCompletedSteps,
+      completed: updatedCompletedSteps.includes('completion')
     });
   } catch (error) {
-    console.error('Error saving onboarding progress:', error);
+    console.error('ONBOARDING API: Error saving onboarding progress:', error);
+    
+    // Return a more specific error message if possible
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : 'Unknown server error';
+    
     return NextResponse.json(
-      { error: 'Failed to save onboarding progress' },
+      { 
+        error: 'Failed to save onboarding progress',
+        details: errorMessage
+      },
       { status: 500 }
     );
   }

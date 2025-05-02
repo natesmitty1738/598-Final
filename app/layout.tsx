@@ -2,9 +2,10 @@ import './globals.css'
 import { Inter } from 'next/font/google'
 import { Toaster } from 'sonner';
 import { Metadata } from 'next'
-import { AuthProvider } from './components/AuthProvider'
-import { ThemeProvider } from './components/ThemeProvider'
-import Header from './components/Header'
+import { AuthProvider } from '@/components/providers/AuthProvider'
+import { ThemeProvider } from '@/components/providers/ThemeProvider'
+import Header from '@/components/layout/Header'
+import Footer from '@/components/layout/Footer'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -20,7 +21,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} min-h-screen bg-background text-foreground`}>
+      <body className={`${inter.className} min-h-screen bg-background text-foreground flex flex-col`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
@@ -31,9 +32,10 @@ export default function RootLayout({
         >
           <AuthProvider>
             <Header />
-            <main className="pt-20">
+            <main className="pt-20 flex-grow">
               {children}
             </main>
+            <Footer />
             <Toaster position="top-right" />
           </AuthProvider>
         </ThemeProvider>

@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 import { hash } from 'bcryptjs';
-import { PrismaClient, Permission, Role } from '@prisma/client';
+import { Permission, Role } from '@prisma/client';
+import prisma from '@/app/api/prisma';
 
-const prisma = new PrismaClient();
+// Debug environment variables
+console.log("API Route - DATABASE_URL:", process.env.DATABASE_URL);
 
 // Map the frontend roles to database roles and assign default permissions
 const getRoleAndPermissions = (role: string): { role: Role, permissions: Permission[] } => {
@@ -96,13 +98,47 @@ export async function POST(request: Request) {
       });
 
       // Create onboarding record
-      await prisma.onboarding.create({
+      const onboarding = await prisma.onboarding.create({
         data: {
           userId: user.id,
           completed: false,
           completedSteps: []
         }
       });
+
+      // Create empty step data records for tracking progress
+      if (onboarding?.id) {
+        // Create separate StepData records for each step
+        await prisma.stepData.createMany({
+          data: [
+            {
+              onboardingId: onboarding.id,
+              stepId: 'welcome',
+              data: JSON.stringify({})
+            },
+            {
+              onboardingId: onboarding.id,
+              stepId: 'business-profile',
+              data: JSON.stringify({})
+            },
+            {
+              onboardingId: onboarding.id,
+              stepId: 'inventory-setup',
+              data: JSON.stringify({})
+            },
+            {
+              onboardingId: onboarding.id,
+              stepId: 'payment-setup',
+              data: JSON.stringify({})
+            },
+            {
+              onboardingId: onboarding.id,
+              stepId: 'completion',
+              data: JSON.stringify({})
+            }
+          ]
+        });
+      }
 
       return NextResponse.json(
         {

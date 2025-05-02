@@ -74,7 +74,7 @@ export default function LoginPage() {
           <p className="mt-2 text-gray-600 dark:text-gray-400">Sign in to your account</p>
         </div>
         
-        <div className="mt-8 bg-white dark:bg-card rounded-lg p-8 shadow">
+        <div className="mt-8 bg-white dark:bg-card rounded-lg p-8 shadow-md border border-gray-200 dark:border-gray-600/40 dark:shadow-lg dark:shadow-gray-900/30">
           {error && (
             <div className="mb-4 rounded-md bg-red-50 dark:bg-red-900/30 p-3 text-sm text-red-700 dark:text-red-300">
               {error}
@@ -92,12 +92,12 @@ export default function LoginPage() {
                 type="email"
                 autoComplete="email"
                 required
-                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-800 dark:text-white"
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-500 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                 Password
               </label>
               <input
@@ -106,7 +106,7 @@ export default function LoginPage() {
                 type="password"
                 autoComplete="current-password"
                 required
-                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-800 dark:text-white"
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-500 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
               />
             </div>
 
@@ -122,7 +122,7 @@ export default function LoginPage() {
           </form>
           
           <div className="mt-6 text-center text-sm">
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-gray-600 dark:text-gray-300">
               Don't have an account?{' '}
               <Link href="/register" className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300">
                 Sign up

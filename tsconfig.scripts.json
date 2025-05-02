@@ -1,17 +1,15 @@
 {
   "compilerOptions": {
-    "target": "ES2017",
-    "lib": ["esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
+    "target": "es2017",
+    "module": "commonjs",
+    "lib": ["es2017", "esnext.asynciterable"],
     "strict": true,
     "esModuleInterop": true,
-    "module": "CommonJS",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "outDir": "dist"
+    "skipLibCheck": true,
+    "outDir": "dist",
+    "rootDir": ".",
+    "resolveJsonModule": true
   },
-  "include": ["scripts/**/*.ts"],
+  "include": ["scripts/**/*", "prisma/**/*"],
   "exclude": ["node_modules"]
 } 

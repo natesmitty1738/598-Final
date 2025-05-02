@@ -89,7 +89,7 @@
   }
 }
 
-/* Brand gradient text effect */
+/* Gradient text */
 .gradient-text {
   @apply inline-block text-transparent bg-clip-text;
   background-image: linear-gradient(
@@ -98,6 +98,7 @@
     var(--brand-gradient-mid),
     var(--brand-gradient-end)
   );
+  padding-bottom: 0.1em; /* Add padding to prevent descender cutoff */
 }
 
 /* Modern Card Effects */
@@ -172,7 +173,7 @@
               0 12px 24px rgba(0, 0, 0, 0.3);
 }
 
-/* Button styles */
+/* Button Styles */
 .btn-primary {
   @apply inline-flex items-center justify-center px-6 py-3 font-medium rounded-md text-white transition-all duration-200;
   background: linear-gradient(
@@ -196,6 +197,10 @@
 .btn-primary:active {
   transform: translateY(1px);
   box-shadow: 0 2px 10px 0 rgba(var(--brand-blue), 0.2);
+}
+
+.btn-secondary {
+  @apply px-6 py-3 border border-border/50 text-foreground font-medium rounded-md hover:bg-secondary/30 hover:border-brand-blue/30 transition-all;
 }
 
 /* Modern Table Styles */
@@ -248,10 +253,8 @@
     rgba(var(--brand-pink), 0.2)
   );
   background-size: 200% 200%;
-  animation: gradientMove 10s ease infinite;
+  animation: gradientMove 15s ease infinite;
   z-index: -1;
-  filter: blur(20px);
-  opacity: 0.4;
 }
 
 .dark .animated-bg::before {
@@ -259,13 +262,410 @@
 }
 
 @keyframes gradientMove {
+  0% { background-position: 0% 0%; }
+  50% { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
+}
+
+/* Floating dot animation */
+.floating-dots {
+  position: absolute;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.floating-dot {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.2;
+  animation: float 20s infinite linear;
+}
+
+.dot-blue {
+  background-color: hsl(var(--brand-blue));
+}
+
+.dot-purple {
+  background-color: hsl(var(--brand-purple));
+}
+
+.dot-pink {
+  background-color: hsl(var(--brand-pink));
+}
+
+@keyframes float {
   0% {
-    background-position: 0% 50%;
+    transform: translateY(0) translateX(0);
+  }
+  25% {
+    transform: translateY(-30px) translateX(10px);
   }
   50% {
-    background-position: 100% 50%;
+    transform: translateY(-10px) translateX(20px);
+  }
+  75% {
+    transform: translateY(-40px) translateX(-10px);
   }
   100% {
-    background-position: 0% 50%;
+    transform: translateY(0) translateX(0);
+  }
+}
+
+/* Refined featured card with dashed border - NextJS style */
+.featured-card {
+  position: relative;
+  border-radius: var(--radius);
+  background-color: rgba(var(--card), 0.4);
+  backdrop-filter: blur(8px);
+  border: 1px dashed rgba(var(--foreground), 0.15);
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.featured-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(45deg, transparent 40%, rgba(var(--brand-purple), 0.08) 60%, transparent 80%);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.featured-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+  border-color: rgba(var(--brand-blue), 0.25);
+}
+
+.featured-card:hover::before {
+  opacity: 1;
+  animation: shimmer 2.5s infinite;
+}
+
+.dark .featured-card {
+  background-color: rgba(20, 20, 22, 0.4);
+  border-color: rgba(var(--foreground), 0.1);
+}
+
+.dark .featured-card:hover {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  border-color: rgba(var(--brand-blue), 0.2);
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Feature highlight - NextJS style */
+.feature-highlight {
+  position: relative;
+  padding: 1.8rem;
+  border-radius: var(--radius);
+  background-color: rgba(var(--background), 0.4);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(var(--foreground), 0.03);
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.feature-highlight:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08);
+  background-color: rgba(var(--card), 0.8);
+}
+
+.dark .feature-highlight {
+  background-color: rgba(20, 20, 22, 0.4);
+  border-color: rgba(var(--foreground), 0.06);
+}
+
+.dark .feature-highlight:hover {
+  background-color: rgba(30, 30, 35, 0.7);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* Code snippet style - NextJS style */
+.code-snippet {
+  background-color: rgba(var(--card), 0.6);
+  border-radius: var(--radius);
+  border: 1px solid rgba(var(--foreground), 0.08);
+  padding: 1.25rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  position: relative;
+  backdrop-filter: blur(8px);
+  line-height: 1.6;
+}
+
+.code-snippet::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius);
+  background: linear-gradient(45deg, 
+    rgba(var(--brand-blue), 0.1),
+    rgba(var(--brand-purple), 0.1),
+    rgba(var(--brand-pink), 0.1),
+    rgba(var(--brand-blue), 0.1)
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.code-snippet:hover::before {
+  opacity: 1;
+}
+
+.dark .code-snippet {
+  background-color: rgba(20, 20, 25, 0.85);
+  border-color: rgba(var(--foreground), 0.1);
+}
+
+/* Hero section elements */
+.hero-text-container {
+  position: relative;
+  z-index: 10;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.dark .hero-text-container {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.hero-text-container h1 {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-text-container h1::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.5), transparent 70%);
+  filter: blur(40px);
+  opacity: 0.2;
+}
+
+.dark .hero-text-container h1::after {
+  background: radial-gradient(circle at center, rgba(0, 0, 0, 0.7), transparent 70%);
+}
+
+.hero-background {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: -1;
+}
+
+.circle-blur {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(50px);
+  opacity: 0.5;
+  background: radial-gradient(circle, rgba(var(--brand-blue), 0.3) 0%, transparent 70%);
+}
+
+.circle-blur.blue {
+  width: 300px;
+  height: 300px;
+  top: -150px;
+  right: 10%;
+  background: radial-gradient(circle, rgba(var(--brand-blue), 0.3) 0%, transparent 70%);
+}
+
+.circle-blur.purple {
+  width: 350px;
+  height: 350px;
+  bottom: -100px;
+  left: 5%;
+  background: radial-gradient(circle, rgba(var(--brand-purple), 0.3) 0%, transparent 70%);
+}
+
+.dark .circle-blur {
+  opacity: 0.2;
+}
+
+/* Code snippet style */
+.code-snippet {
+  background-color: rgba(var(--card), 0.8);
+  border-radius: var(--radius);
+  border: 1px dashed rgba(var(--foreground), 0.2);
+  padding: 1rem;
+  font-family: monospace;
+  position: relative;
+  backdrop-filter: blur(8px);
+}
+
+.code-snippet::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  right: -5px;
+  bottom: -5px;
+  border: 1px solid transparent;
+  border-radius: calc(var(--radius) + 5px);
+  background: linear-gradient(45deg, 
+    hsl(var(--brand-blue)),
+    hsl(var(--brand-purple)),
+    hsl(var(--brand-pink)),
+    hsl(var(--brand-blue))
+  ) border-box;
+  mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: destination-out;
+  mask-composite: exclude;
+  opacity: 0.3;
+}
+
+.dark .code-snippet {
+  background-color: rgba(17, 17, 17, 0.8);
+}
+
+/* Feature highlight */
+.feature-highlight {
+  position: relative;
+  padding: 1.5rem;
+  border-radius: var(--radius);
+  background-color: rgba(var(--card), 0.5);
+  backdrop-filter: blur(8px);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  overflow: hidden;
+}
+
+.feature-highlight::after {
+  content: '';
+  position: absolute;
+  height: 2px;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  background: linear-gradient(
+    to right,
+    hsl(var(--brand-blue)),
+    hsl(var(--brand-purple))
+  );
+  transition: width 0.3s ease;
+}
+
+.feature-highlight:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+.feature-highlight:hover::after {
+  width: 100%;
+}
+
+.dark .feature-highlight {
+  background-color: rgba(var(--card), 0.2);
+}
+
+.dark .feature-highlight:hover {
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+}
+
+/* NextJS-style grid background */
+.nextjs-grid-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.nextjs-grid-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(circle at center, rgba(var(--foreground), 0.12) 1px, transparent 1px);
+  background-size: 30px 30px;
+  z-index: -1;
+}
+
+.nextjs-dots {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 0;
+  opacity: 1;
+  pointer-events: none;
+}
+
+.nextjs-dot {
+  position: absolute;
+  border-radius: 50%;
+  background-color: rgba(var(--foreground), 0.25);
+  width: 3px;
+  height: 3px;
+}
+
+.nextjs-line {
+  position: absolute;
+  height: 1px;
+  background-color: rgba(var(--foreground), 0.12);
+  transform-origin: 0 0;
+}
+
+/* Subtle animation for grid elements */
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 0.9; }
+}
+
+.dark .nextjs-grid-bg::before {
+  background-image: 
+    radial-gradient(circle at center, rgba(var(--foreground), 0.18) 1px, transparent 1px);
+}
+
+.dark .nextjs-dot {
+  background-color: rgba(var(--foreground), 0.3);
+}
+
+.dark .nextjs-line {
+  background-color: rgba(var(--foreground), 0.18);
+}
+
+/* Electricity flow animations */
+@keyframes electricity-flow-x {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+@keyframes electricity-flow-y {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(200%);
+  }
+}
+
+@keyframes electricity-flow-x-reverse {
+  0% {
+    transform: translateX(200%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes electricity-flow-y-reverse {
+  0% {
+    transform: translateY(200%);
+  }
+  100% {
+    transform: translateY(-100%);
   }
 } 

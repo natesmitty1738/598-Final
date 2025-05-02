@@ -47,7 +47,6 @@ export async function GET(req: Request) {
         totalRevenue: 0,
         averageOrderValue: 0,
         topSellingProducts: [],
-        lowStockProducts: products.filter(p => p.stockQuantity <= 10).slice(0, 5),
         salesByCategory: [],
         dailySales: Array.from({ length: timeRange }, (_, i) => {
           const date = new Date();
@@ -89,25 +88,6 @@ export async function GET(req: Request) {
     const topSellingProducts = Array.from(productSales.values())
       .sort((a, b) => b.quantity - a.quantity)
       .slice(0, 5);
-
-    // Get low stock products
-    const lowStockProducts = await prisma.product.findMany({
-      where: {
-        userId: session.user.id,
-        stockQuantity: {
-          lte: 10,
-        },
-      },
-      select: {
-        id: true,
-        name: true,
-        stockQuantity: true,
-      },
-      orderBy: {
-        stockQuantity: "asc",
-      },
-      take: 5,
-    });
 
     // Calculate sales by category
     const categorySales = new Map();
@@ -162,7 +142,6 @@ export async function GET(req: Request) {
       totalRevenue,
       averageOrderValue,
       topSellingProducts,
-      lowStockProducts,
       salesByCategory,
       dailySales: dailySalesArray,
     });

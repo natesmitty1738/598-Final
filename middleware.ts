@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 import type { NextRequest } from 'next/server'
 
-// Paths that don't require authentication
+// Authentication-exempt paths
 const publicPaths = [
   '/',
   '/login',
@@ -10,11 +10,14 @@ const publicPaths = [
   '/pricing',
   '/features',
   '/demo',
+  '/terms',
+  '/privacy',
+  '/contact',
   '/api/auth/register',
   '/api/auth/[...nextauth]'
 ]
 
-// Paths that don't require onboarding completion
+// Onboarding-exempt paths
 const onboardingExemptPaths = [
   ...publicPaths,
   '/onboarding',
@@ -23,7 +26,7 @@ const onboardingExemptPaths = [
   '/api/onboarding/complete'
 ]
 
-// Routes that require specific permissions
+// Permission-restricted routes
 const restrictedRoutes: Record<string, string[]> = {
   '/inventory': ['MANAGE_INVENTORY'],
   '/api/inventory': ['MANAGE_INVENTORY'],
@@ -41,26 +44,57 @@ const restrictedRoutes: Record<string, string[]> = {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Check if the path is public
   if (isPublicPath(pathname)) {
     return NextResponse.next()
   }
 
-  // Get the user's token
+  if (pathname.startsWith('/dashboard')) {
+    const token = await getToken({ req: request })
+    
+    if (!token) {
+      return redirectToLogin(request)
+    }
+    
+    try {
+      const hasCompletedOnboarding = await checkOnboardingStatus(token.id as string)
+      
+      if (!hasCompletedOnboarding) {
+        return NextResponse.redirect(new URL('/onboarding', request.url))
+      }
+    } catch (error) {
+      console.error('Error checking onboarding status:', error)
+    }
+    
+    return NextResponse.next()
+  }
+
   const token = await getToken({ req: request })
 
-  // If there's no token, redirect to login
   if (!token) {
     return redirectToLogin(request)
   }
   
-  // Admin users have access to everything
+  if (isOnboardingExempt(pathname)) {
+    return NextResponse.next()
+  }
+  
+  try {
+    const hasCompletedOnboarding = await checkOnboardingStatus(token.id as string)
+    
+    if (!hasCompletedOnboarding) {
+      return NextResponse.redirect(new URL('/onboarding', request.url))
+    }
+  } catch (error) {
+    console.error('Error checking onboarding status:', error)
+  }
+  
+  // Admins can access everything
   const role = token.role as string
   if (role === 'ADMIN') {
     return NextResponse.next()
   }
 
-  // For employees, check if they have the required permissions for restricted routes
+  // Permission check for restricted routes
   const userPermissions = token.permissions as string[] || []
   const restrictedPath = Object.keys(restrictedRoutes).find(route => 
     pathname.startsWith(route)
@@ -73,38 +107,21 @@ export async function middleware(request: NextRequest) {
     )
 
     if (!hasPermission) {
-      // Redirect to dashboard or show error
-      return NextResponse.redirect(new URL('/', request.url))
+      return NextResponse.redirect(new URL('/dashboard', request.url))
     }
   }
 
-  // Grant automatic permissions based on role
+  // Role-based access
   if (role === 'MANAGER') {
-    return NextResponse.next() // Managers can access everything except what's explicitly denied
+    return NextResponse.next() 
   }
 
   if (role === 'SALES_REP' && pathname.includes('/sales')) {
-    return NextResponse.next() // Sales reps can access sales pages
+    return NextResponse.next() 
   }
 
   if (role === 'INVENTORY_MANAGER' && pathname.includes('/inventory')) {
-    return NextResponse.next() // Inventory managers can access inventory pages
-  }
-
-  // If the path is exempt from onboarding check, proceed
-  if (isOnboardingExempt(pathname)) {
-    return NextResponse.next()
-  }
-
-  // Check if the user has completed onboarding
-  try {
-    const hasCompletedOnboarding = await checkOnboardingStatus(token.id as string)
-    
-    if (!hasCompletedOnboarding) {
-      return NextResponse.redirect(new URL('/onboarding', request.url))
-    }
-  } catch (error) {
-    console.error('Error checking onboarding status:', error)
+    return NextResponse.next() 
   }
 
   return NextResponse.next()
@@ -125,10 +142,8 @@ function redirectToLogin(request: NextRequest) {
   return NextResponse.redirect(url)
 }
 
-// Function to check if a user has completed onboarding
 async function checkOnboardingStatus(userId: string): Promise<boolean> {
   try {
-    // Make an API call to check onboarding status
     const response = await fetch(`${process.env.NEXTAUTH_URL}/api/onboarding/status`, {
       headers: {
         'Cookie': `next-auth.session-token=${userId}`,
@@ -137,7 +152,21 @@ async function checkOnboardingStatus(userId: string): Promise<boolean> {
 
     if (response.ok) {
       const data = await response.json()
-      return data.completed === true
+      
+      if (data.completed === true) {
+        // Verify all required steps are completed
+        const requiredSteps = ['welcome', 'business-profile', 'inventory-setup', 'payment-setup', 'completion']
+        const allStepsCompleted = requiredSteps.every(step => data.completedSteps?.includes(step))
+        
+        if (!allStepsCompleted) {
+          console.log('Middleware detected completed flag is true but not all steps are done')
+          return false
+        }
+        
+        return true
+      }
+      
+      return false
     }
 
     return false
@@ -150,11 +179,7 @@ async function checkOnboardingStatus(userId: string): Promise<boolean> {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public files (public folder)
+     * Match all request paths except static files, images, and favicon
      */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],

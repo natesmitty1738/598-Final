@@ -1,24 +1,108 @@
 /**
- * useOnboardingAutomata.ts
+ * Simple and reliable onboarding state management
  * 
- * A React hook for managing onboarding state with automatic saving.
+ * Features:
+ * 1. Uses localStorage for all form data until explicit save/completion 
+ * 2. Only sends data to server on these events:
+ *    - Explicit save by clicking Save button
+ *    - Completion of the entire process
+ *    - Navigating away (beforeunload)
+ * 3. Batches data to reduce API calls
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { 
-  OnboardingState, 
-  StepId, 
-  transitions, 
-  initialState, 
-  saveProgress, 
-  createAutoSave,
-  isOnboardingComplete,
-  getNextIncompleteStep
-} from '../services/OnboardingAutomata';
+import { toast } from 'sonner';
 
-// User activity tracking constants
-const ACTIVITY_TIMEOUT = 5000; // Time in ms to wait before considering the user inactive
-const AUTO_SAVE_DELAY = 2000; // Time in ms to wait before auto-saving
+// Types
+export type StepId = 'welcome' | 'business-profile' | 'inventory-setup' | 'payment-setup' | 'completion';
+
+export interface OnboardingState {
+  currentStepIndex: number;
+  completedSteps: StepId[];
+  activeStep: StepId;
+  formData: {
+    welcome: any;
+    businessProfile: any;
+    inventorySetup: any;
+    paymentSetup: any;
+    completion: any;
+    [key: string]: any;
+  };
+  hasUnsavedChanges: boolean;
+  isCompleted: boolean;
+  lastSavedAt?: Date;
+}
+
+// Constants
+const STEPS: { id: StepId; title: string }[] = [
+  { id: 'welcome', title: 'Welcome' },
+  { id: 'business-profile', title: 'Business Profile' },
+  { id: 'inventory-setup', title: 'Inventory Setup' },
+  { id: 'payment-setup', title: 'Payment Setup' },
+  { id: 'completion', title: 'Completed' },
+];
+
+const STORAGE_KEY = 'onboarding_state';
+const ACTIVITY_TIMEOUT = 60000; // 60 seconds before saving on inactivity
+
+// Get data key for a step ID
+export function getDataKeyForStep(stepId: StepId): string {
+  switch (stepId) {
+    case 'business-profile': return 'businessProfile';
+    case 'inventory-setup': return 'inventorySetup';
+    case 'payment-setup': return 'paymentSetup';
+    default: return stepId;
+  }
+}
+
+// Initial state
+const initialState: OnboardingState = {
+  currentStepIndex: 0,
+  completedSteps: [],
+  activeStep: 'welcome',
+  formData: {
+    welcome: {},
+    businessProfile: {},
+    inventorySetup: { products: [] },
+    paymentSetup: {},
+    completion: {}
+  },
+  hasUnsavedChanges: false,
+  isCompleted: false,
+};
+
+// Helper for localStorage operations
+const storage = {
+  save: (state: OnboardingState): void => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        currentStepIndex: state.currentStepIndex,
+        completedSteps: state.completedSteps,
+        activeStep: state.activeStep,
+        formData: state.formData,
+        isCompleted: state.isCompleted
+      }));
+    } catch (e) {
+      console.error('Error saving to localStorage:', e);
+    }
+  },
+  load: (): Partial<OnboardingState> | null => {
+    try {
+      const data = localStorage.getItem(STORAGE_KEY);
+      return data ? JSON.parse(data) : null;
+    } catch (e) {
+      console.error('Error loading from localStorage:', e);
+      return null;
+    }
+  },
+  clear: (): void => {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch (e) {
+      console.error('Error clearing localStorage:', e);
+    }
+  }
+};
 
 export default function useOnboardingAutomata() {
   const [state, setState] = useState<OnboardingState>(initialState);
@@ -28,68 +112,115 @@ export default function useOnboardingAutomata() {
   
   // Refs for tracking user activity
   const lastActivityRef = useRef<number>(Date.now());
-  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
-  // Create auto-save function
-  const performSave = useCallback(async () => {
-    if (!state.hasUnsavedChanges) return;
-    
+  // Server save function
+  const saveToServer = useCallback(async (): Promise<boolean> => {
     setIsSaving(true);
+    setError(null);
+    
     try {
-      const success = await saveProgress(state);
-      if (success) {
-        setState(transitions.markSaved(state));
+      // Create a clean, simple payload with all data
+      const response = await fetch('/api/onboarding/progress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          stepId: state.activeStep,
+          completedSteps: state.completedSteps,
+          formData: state.formData[getDataKeyForStep(state.activeStep)]
+        }),
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Server returned ${response.status}`);
       }
-    } catch (error) {
-      console.error('Error auto-saving:', error);
-      setError('Failed to auto-save your progress');
+      
+      setState(prev => ({
+        ...prev,
+        hasUnsavedChanges: false,
+        lastSavedAt: new Date()
+      }));
+      
+      return true;
+    } catch (err) {
+      console.error('Error saving onboarding progress:', err);
+      setError('Failed to save progress. Changes are stored locally.');
+      return false;
     } finally {
       setIsSaving(false);
     }
   }, [state]);
   
-  const autoSave = createAutoSave(performSave, AUTO_SAVE_DELAY);
+  // Mark onboarding as complete
+  const markComplete = useCallback(async (): Promise<boolean> => {
+    try {
+      const response = await fetch('/api/onboarding/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ completed: true }),
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to mark onboarding as complete');
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error during completion:', error);
+      return false;
+    }
+  }, []);
   
-  // Track user activity
+  // Register activity to track user interaction
   const registerActivity = useCallback(() => {
     lastActivityRef.current = Date.now();
-  }, []);
+    if (error) setError(null);
+  }, [error]);
   
   // Set up activity tracking
   useEffect(() => {
     const trackActivity = () => registerActivity();
     
-    // Add event listeners to track user activity
+    // Add event listeners for user activity
     window.addEventListener('mousemove', trackActivity);
     window.addEventListener('keydown', trackActivity);
     window.addEventListener('click', trackActivity);
     window.addEventListener('scroll', trackActivity);
     window.addEventListener('touchstart', trackActivity);
     
-    // Check for inactivity and save if needed
+    // Check for inactivity and save to localStorage only
     const checkActivity = () => {
       const now = Date.now();
       const timeSinceLastActivity = now - lastActivityRef.current;
       
       if (timeSinceLastActivity > ACTIVITY_TIMEOUT && state.hasUnsavedChanges) {
-        performSave();
+        storage.save(state);
+        setState(prev => ({ ...prev, hasUnsavedChanges: false }));
       }
     };
     
-    // Set up interval to check activity
     const activityInterval = setInterval(checkActivity, ACTIVITY_TIMEOUT);
     
-    // Set up auto-save when component unmounts or before navigation
+    // Save data when navigating away
     const handleBeforeUnload = () => {
       if (state.hasUnsavedChanges) {
-        performSave();
+        storage.save(state);
+        
+        // Attempt to save to server synchronously (not guaranteed to complete)
+        const formData = new FormData();
+        formData.append('stepId', state.activeStep);
+        formData.append('completedSteps', JSON.stringify(state.completedSteps));
+        formData.append('formData', JSON.stringify(state.formData[getDataKeyForStep(state.activeStep)]));
+        
+        navigator.sendBeacon('/api/onboarding/progress', formData);
       }
     };
     
     window.addEventListener('beforeunload', handleBeforeUnload);
     
-    // Clean up event listeners on unmount
     return () => {
+      // Clean up all listeners
       window.removeEventListener('mousemove', trackActivity);
       window.removeEventListener('keydown', trackActivity);
       window.removeEventListener('click', trackActivity);
@@ -98,131 +229,209 @@ export default function useOnboardingAutomata() {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       clearInterval(activityInterval);
       
-      // Final save on unmount if needed
+      // Final save
       if (state.hasUnsavedChanges) {
-        performSave();
-      }
-      
-      // Clear any pending save timeouts
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
+        storage.save(state);
       }
     };
-  }, [registerActivity, performSave, state.hasUnsavedChanges]);
+  }, [registerActivity, state]);
   
-  // Auto-save when state changes with unsaved changes
+  // Initialize state on mount
   useEffect(() => {
-    if (state.hasUnsavedChanges) {
-      autoSave();
-    }
-  }, [state, autoSave]);
-  
-  // Load initial onboarding state from the server
-  useEffect(() => {
-    const fetchOnboardingState = async () => {
-      setIsLoading(true);
+    async function initialize() {
       try {
+        // First try to load from localStorage for instant display
+        const localState = storage.load();
+        
+        if (localState) {
+          setState(current => ({
+            ...current,
+            ...localState,
+            hasUnsavedChanges: false
+          }));
+        }
+        
+        // Then try to fetch from server
         const response = await fetch('/api/onboarding/status');
+        
         if (response.ok) {
           const data = await response.json();
           
-          // Map server data to our state structure
-          const loadedState: Partial<OnboardingState> = {
-            completedSteps: data.completedSteps || [],
-            isCompleted: data.completed || false,
-            formData: data.userData || initialState.formData,
-          };
-          
-          // Find the next incomplete step if any
-          if (loadedState.completedSteps?.length) {
-            const nextIncompleteIndex = initialState.steps.findIndex(
-              step => !loadedState.completedSteps?.includes(step.id)
-            );
-            
-            if (nextIncompleteIndex !== -1) {
-              loadedState.currentStepIndex = nextIncompleteIndex;
-              loadedState.activeStep = initialState.steps[nextIncompleteIndex].id;
-            }
+          if (data && data.completedSteps?.length > 0) {
+            // Merge server data with localStorage data, prioritizing server for completion status
+            setState(current => ({
+              ...current,
+              completedSteps: data.completedSteps || current.completedSteps,
+              activeStep: data.activeStep || current.activeStep,
+              currentStepIndex: data.currentStepIndex !== undefined 
+                ? data.currentStepIndex 
+                : current.currentStepIndex,
+              formData: {
+                ...current.formData,
+                ...(data.formData || {})
+              },
+              isCompleted: data.completed || current.isCompleted,
+              hasUnsavedChanges: false
+            }));
           }
-          
-          setState(transitions.loadState(initialState, loadedState));
+        } else {
+          // If server fetch fails but we have localStorage data, that's fine
+          console.log('Using local state, server request failed');
         }
-      } catch (error) {
-        console.error('Error loading onboarding state:', error);
-        setError('Failed to load your onboarding progress');
+      } catch (err) {
+        console.error('Error initializing onboarding state:', err);
+        // If we have localStorage data, we can continue with that
       } finally {
         setIsLoading(false);
       }
-    };
+    }
     
-    fetchOnboardingState();
+    initialize();
   }, []);
   
-  // State transition functions
-  const nextStep = useCallback(() => {
-    setState(transitions.next(state));
-    registerActivity();
-  }, [state, registerActivity]);
-  
-  const previousStep = useCallback(() => {
-    setState(transitions.previous(state));
-    registerActivity();
-  }, [state, registerActivity]);
-  
+  // Update form data
   const updateStepData = useCallback((stepId: StepId, data: any) => {
-    setState(transitions.updateFormData(state, stepId, data));
-    registerActivity();
-    autoSave();
-  }, [state, registerActivity, autoSave]);
+    const dataKey = getDataKeyForStep(stepId);
+    
+    setState(prev => ({
+      ...prev,
+      formData: {
+        ...prev.formData,
+        [dataKey]: data
+      },
+      hasUnsavedChanges: true
+    }));
+    
+    // Save to localStorage immediately but don't mark as saved to server
+    storage.save({
+      ...state,
+      formData: {
+        ...state.formData,
+        [dataKey]: data
+      }
+    });
+  }, [state]);
   
+  // Move to next step
+  const nextStep = useCallback(() => {
+    if (state.currentStepIndex >= STEPS.length - 1) return;
+    
+    setState(prev => ({
+      ...prev,
+      currentStepIndex: prev.currentStepIndex + 1,
+      activeStep: STEPS[prev.currentStepIndex + 1].id
+    }));
+    
+    // Save to localStorage when changing steps
+    storage.save({
+      ...state,
+      currentStepIndex: state.currentStepIndex + 1,
+      activeStep: STEPS[state.currentStepIndex + 1].id
+    });
+  }, [state]);
+  
+  // Move to previous step
+  const previousStep = useCallback(() => {
+    if (state.currentStepIndex <= 0) return;
+    
+    setState(prev => ({
+      ...prev,
+      currentStepIndex: prev.currentStepIndex - 1,
+      activeStep: STEPS[prev.currentStepIndex - 1].id
+    }));
+    
+    // Save to localStorage when changing steps
+    storage.save({
+      ...state,
+      currentStepIndex: state.currentStepIndex - 1,
+      activeStep: STEPS[state.currentStepIndex - 1].id
+    });
+  }, [state]);
+  
+  // Mark step as completed and optionally move to next step
   const completeStep = useCallback(async (stepId: StepId, data?: any) => {
+    // Update data if provided
     if (data) {
-      setState(transitions.updateFormData(state, stepId, data));
+      updateStepData(stepId, data);
     }
     
-    setState(prev => transitions.completeStep(prev, stepId));
-    registerActivity();
-    
-    // Immediate save when completing a step
-    setIsSaving(true);
-    try {
-      await saveProgress(
-        transitions.completeStep(state, stepId), 
-        stepId, 
-        data || state.formData[stepId]
-      );
-    } catch (error) {
-      console.error('Error saving step completion:', error);
-      setError('Failed to save your progress');
-    } finally {
-      setIsSaving(false);
+    // Don't add duplicates
+    if (!state.completedSteps.includes(stepId)) {
+      // Add to completed steps
+      const newCompletedSteps = [...state.completedSteps, stepId];
+      
+      setState(prev => ({
+        ...prev,
+        completedSteps: newCompletedSteps,
+        isCompleted: stepId === 'completion',
+        hasUnsavedChanges: true
+      }));
+      
+      // Save to localStorage
+      storage.save({
+        ...state,
+        completedSteps: newCompletedSteps,
+        isCompleted: stepId === 'completion'
+      });
+      
+      // If this is the final step, save to server and mark complete
+      if (stepId === 'completion') {
+        try {
+          // Save progress first
+          await saveToServer();
+          
+          // Then mark as complete
+          const success = await markComplete();
+          
+          if (success) {
+            // Clear localStorage on successful completion
+            storage.clear();
+            
+            toast.success("Setup complete!", {
+              description: "Your account is ready to use"
+            });
+          }
+        } catch (error) {
+          console.error('Error during completion:', error);
+          setError('There was an issue completing your setup, but your progress is saved.');
+        }
+      }
     }
-    
-    // Auto advance to next step
-    nextStep();
-  }, [state, registerActivity, nextStep]);
+  }, [state, updateStepData, saveToServer, markComplete]);
   
-  // Force save the current state
-  const forceSave = useCallback(async () => {
-    await performSave();
-  }, [performSave]);
+  // Manually save progress
+  const saveProgress = useCallback(async () => {
+    const success = await saveToServer();
+    
+    if (success) {
+      toast.success("Progress saved!", { 
+        description: "Your changes have been saved"
+      });
+    }
+  }, [saveToServer]);
+  
+  // Reset error state
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
   
   return {
     state,
     isLoading,
     isSaving,
     error,
+    clearError,
     nextStep,
     previousStep,
     updateStepData,
     completeStep,
-    forceSave,
-    isComplete: isOnboardingComplete(state),
+    saveProgress,
     activeStep: state.activeStep,
     currentStepIndex: state.currentStepIndex,
     completedSteps: state.completedSteps,
     formData: state.formData,
+    currentStepData: state.formData[getDataKeyForStep(state.activeStep)] || {},
     hasUnsavedChanges: state.hasUnsavedChanges,
-    getNextIncompleteStep: () => getNextIncompleteStep(state),
+    steps: STEPS
   };
 } 

@@ -1,39 +1,57 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import OnboardingWizard from '../components/OnboardingWizard';
-import { Loader2 } from 'lucide-react';
+import { Suspense, useEffect, useState } from 'react';
+import { Inter } from 'next/font/google';
+
+import SetupWizard from '@/components/onboarding/SetupWizard';
+
+const inter = Inter({ subsets: ['latin'] });
+
+// Moving metadata elsewhere - should be in a separate layout.tsx file
 
 export default function OnboardingPage() {
-  const { data: session, status } = useSession();
   const router = useRouter();
-
+  const [loading, setLoading] = useState(true);
+  const [onboardingComplete, setOnboardingComplete] = useState(false);
+  
   useEffect(() => {
-    // If the user is not authenticated, redirect to login
-    if (status === 'unauthenticated') {
-      router.push('/login?callbackUrl=/onboarding');
-    }
-  }, [status, router]);
-
-  // Show loading state while checking authentication
-  if (status === 'loading') {
+    const checkOnboardingStatus = async () => {
+      try {
+        const res = await fetch('/api/onboarding/status');
+        const data = await res.json();
+        
+        if (data.completed) {
+          // If onboarding is already completed, redirect to dashboard
+          setOnboardingComplete(true);
+          router.push('/dashboard');
+        }
+      } catch (error) {
+        console.error('Error checking onboarding status:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    checkOnboardingStatus();
+  }, [router]);
+  
+  if (loading || onboardingComplete) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="flex flex-col items-center space-y-4">
-          <Loader2 className="w-12 h-12 text-brand-blue animate-spin" />
-          <p className="text-muted-foreground">Loading your setup wizard...</p>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse flex flex-col items-center">
+          <div className="h-12 w-12 bg-gray-200 rounded-full mb-4"></div>
+          <div className="h-4 w-48 bg-gray-200 rounded"></div>
         </div>
       </div>
     );
   }
-
-  // If the user is authenticated, show the onboarding wizard
-  if (session) {
-    return <OnboardingWizard />;
-  }
-
-  // This should not be visible, but render a placeholder for SSR
-  return null;
+  
+  return (
+    <main className={`min-h-screen bg-background ${inter.className}`}>
+      <Suspense fallback={<div>Loading...</div>}>
+        <SetupWizard />
+      </Suspense>
+    </main>
+  );
 } 

@@ -69,41 +69,66 @@ export async function POST(request: Request) {
       documents,
     } = data;
 
-    // Create the product
-    const product = await prisma.product.create({
-      data: {
-        sku,
-        name,
-        description,
-        unitCost: parseFloat(unitCost),
-        sellingPrice: parseFloat(sellingPrice),
-        stockQuantity: parseInt(stockQuantity),
-        location,
-        category,
-        size,
-        color,
-        userId: user.id,
-        images: {
-          create: images?.map((url: string) => ({
-            url,
-            alt: name,
-          })) || [],
-        },
-        documents: {
-          create: documents?.map((url: string) => ({
-            url,
-            name: url.split('/').pop() || 'Document',
-            type: url.split('.').pop() || 'unknown',
-          })) || [],
-        },
-      },
-      include: {
-        images: true,
-        documents: true,
-      },
-    });
+    console.log("Creating product:", { sku, name, unitCost, sellingPrice, stockQuantity });
 
-    return NextResponse.json(product);
+    // Validate required fields
+    if (!sku || !name) {
+      return NextResponse.json({ error: 'SKU and name are required' }, { status: 400 });
+    }
+
+    // Ensure numeric values are properly parsed
+    const parsedUnitCost = typeof unitCost === 'string' ? parseFloat(unitCost) : (unitCost || 0);
+    const parsedSellingPrice = typeof sellingPrice === 'string' ? parseFloat(sellingPrice) : (sellingPrice || 0);
+    const parsedStockQuantity = typeof stockQuantity === 'string' ? parseInt(stockQuantity.toString()) : (stockQuantity || 0);
+
+    // Create the product
+    try {
+      const product = await prisma.product.create({
+        data: {
+          sku,
+          name,
+          description: description || "",
+          unitCost: parsedUnitCost,
+          sellingPrice: parsedSellingPrice,
+          stockQuantity: parsedStockQuantity,
+          location: location || "",
+          category: category || "",
+          size: size || "",
+          color: color || "",
+          userId: user.id,
+          images: {
+            create: Array.isArray(images) && images.length > 0
+              ? images.map((url: string) => ({
+                  url,
+                  alt: name,
+                }))
+              : [],
+          },
+          documents: {
+            create: Array.isArray(documents) && documents.length > 0
+              ? documents.map((url: string) => ({
+                  url,
+                  name: url.split('/').pop() || 'Document',
+                  type: url.split('.').pop() || 'unknown',
+                }))
+              : [],
+          },
+        },
+        include: {
+          images: true,
+          documents: true,
+        },
+      });
+
+      console.log("Product created successfully:", product.id);
+      return NextResponse.json(product);
+    } catch (dbError) {
+      console.error("Database error creating product:", dbError);
+      return NextResponse.json(
+        { error: 'Failed to create product in database' },
+        { status: 500 }
+      );
+    }
   } catch (error) {
     console.error('Error creating product:', error);
     return NextResponse.json(

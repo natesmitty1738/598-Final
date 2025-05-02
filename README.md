@@ -345,3 +345,35 @@ When creating new components:
 ### TODOS
 
 -Add docker config for ease of use
+
+## Component Structure
+
+The components are organized in the following structure:
+
+```
+components/
+├── ui/              # Base UI components (buttons, inputs, etc.)
+├── layout/          # Layout components (Header, Sidebar, Navigation)
+├── forms/           # Form components
+├── features/        # Feature-specific components
+│   ├── onboarding/  # Onboarding-related components
+│   ├── inventory/   # Inventory-related components
+│   └── sales/       # Sales-related components
+├── shared/          # Shared utility components
+└── providers/       # Context providers
+```
+
+> **Note:** The previous component structure that used `app/components` has been completely removed in favor of this cleaner approach. All components now reside in the root `/components` directory organized by function.
+
+## Directory Paths
+
+- `@/components/ui/*`: UI components
+- `@/components/layout/*`: Layout components
+- `@/components/forms/*`: Form components
+- `@/components/features/*`: Feature-specific components
+- `@/components/shared/*`: Shared utility components
+- `@/components/providers/*`: Context providers
+
+## Getting Started
+
+...

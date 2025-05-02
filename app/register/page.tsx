@@ -78,30 +78,25 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
-      <div className="w-full max-w-md space-y-8 px-4">
+    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center py-12">
+      <div className="w-full max-w-md space-y-8 px-4 mb-12">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Create an account</h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">Sign up to get started with MerchX</p>
         </div>
         
-        <div className="mt-8 bg-white dark:bg-card rounded-lg p-8 shadow">
-          {errors && (
-            <div className="mb-4 rounded-md bg-red-50 dark:bg-red-900/30 p-3 text-sm text-red-700 dark:text-red-300">
-              {errors.root?.message}
-            </div>
-          )}
+        <div className="mt-8 bg-white dark:bg-card rounded-lg p-8 shadow-md border border-gray-200 dark:border-gray-600/40 dark:shadow-lg dark:shadow-gray-900/30">
           
           <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                 Name
               </label>
               <input
                 id="name"
                 type="text"
                 autoComplete="name"
-                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-800 dark:text-white"
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-500 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
                 {...register('name', { required: 'Name is required' })}
               />
               {errors.name && (
@@ -110,14 +105,14 @@ export default function RegisterPage() {
             </div>
             
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                 Email
               </label>
               <input
                 id="email"
                 type="email"
                 autoComplete="email"
-                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-800 dark:text-white"
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-500 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
                 {...register('email', { 
                   required: 'Email is required',
                   pattern: {
@@ -132,14 +127,14 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                 Password
               </label>
               <input
                 id="password"
                 type="password"
                 autoComplete="new-password"
-                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-800 dark:text-white"
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-500 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
                 {...register('password', { 
                   required: 'Password is required',
                   minLength: {
@@ -154,14 +149,14 @@ export default function RegisterPage() {
             </div>
             
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                 Confirm Password
               </label>
               <input
                 id="confirmPassword"
                 type="password"
                 autoComplete="new-password"
-                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-800 dark:text-white"
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-500 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
                 {...register('confirmPassword', { 
                   required: 'Please confirm your password',
                   validate: (val) => {
@@ -177,7 +172,7 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                 Account Type
               </label>
               <div className="flex flex-col space-y-2">
@@ -204,13 +199,13 @@ export default function RegisterPage() {
 
             {selectedRole === 'EMPLOYEE' && (
               <div>
-                <label htmlFor="businessEmail" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label htmlFor="businessEmail" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                   Your Business Admin's Email
                 </label>
                 <input
                   id="businessEmail"
                   type="email"
-                  className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-800 dark:text-white"
+                  className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-500 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
                   {...register('businessEmail', { 
                     required: selectedRole === 'EMPLOYEE' ? 'Business admin email is required' : false,
                     pattern: {
@@ -240,7 +235,7 @@ export default function RegisterPage() {
           </form>
           
           <div className="mt-6 text-center text-sm">
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-gray-600 dark:text-gray-300">
               Already have an account?{' '}
               <Link href="/login" className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300">
                 Sign in

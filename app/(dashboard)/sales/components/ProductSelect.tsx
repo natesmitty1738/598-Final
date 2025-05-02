@@ -1,50 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Product } from "@prisma/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 interface ProductSelectProps {
   value: string;
-  onValueChange: (value: string, product: Product | undefined) => void;
+  products: Product[];
+  onChange: (value: string, product: Product | undefined) => void;
 }
 
-export function ProductSelect({ value, onValueChange }: ProductSelectProps) {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await fetch("/api/products");
-        if (!response.ok) {
-          throw new Error("Failed to fetch products");
-        }
-        const data = await response.json();
-        setProducts(data.products);
-      } catch (error) {
-        console.error("Error fetching products:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProducts();
-  }, []);
-
+export function ProductSelect({ value, products, onChange }: ProductSelectProps) {
   const handleValueChange = (newValue: string) => {
     const selectedProduct = products.find(p => p.id === newValue);
-    onValueChange(newValue, selectedProduct);
+    onChange(newValue, selectedProduct);
   };
 
-  if (loading) {
+  if (!products || products.length === 0) {
     return (
-      <Select>
+      <Select disabled>
         <SelectTrigger>
-          <SelectValue placeholder="Loading products..." />
+          <SelectValue placeholder="No products available" />
         </SelectTrigger>
       </Select>
     );
@@ -60,10 +35,12 @@ export function ProductSelect({ value, onValueChange }: ProductSelectProps) {
           <SelectItem 
             key={product.id} 
             value={product.id}
-            disabled={product.stockQuantity <= 0}
+            disabled={product.stockQuantity <= 0 || !product.sellingPrice || product.sellingPrice <= 0}
           >
-            {product.name} - ${product.sellingPrice} 
-            {product.stockQuantity <= 0 ? " (Out of stock)" : ` (${product.stockQuantity} in stock)`}
+            {product.name} - ${product.sellingPrice || 0} 
+            {product.stockQuantity <= 0 ? " (Out of stock)" : 
+             (!product.sellingPrice || product.sellingPrice <= 0) ? " (No price set)" :
+             ` (${product.stockQuantity} in stock)`}
           </SelectItem>
         ))}
       </SelectContent>

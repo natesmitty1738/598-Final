@@ -16,27 +16,35 @@ import {
   Pie,
   Cell,
 } from 'recharts';
+import CategoryChart from '@/components/features/CategoryChart';
+import ChartCard from '@/components/features/ChartCard';
+import PageHeader from '@/components/layout/PageHeader';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
+// update interface to match the actual Product schema from database
 interface Product {
   id: string;
   name: string;
-  description: string;
-  unitCost: number;
-  sellingPrice: number;
-  stockQuantity: number;
+  description?: string;
   sku: string;
+  unitCost?: number;
+  sellingPrice?: number;
+  stockQuantity?: number;
+  location?: string;
   category?: string;
-  unitSize?: string;
-  expirationDate?: string;
-  supplier?: string;
-  reorderPoint?: number;
-  reorderQuantity?: number;
-  lastOrderDate?: string;
+  size?: string;
+  color?: string;
+  createdAt: string;
+  updatedAt: string;
+  userId: string;
+  images?: { id: string; url: string; alt?: string }[];
+  documents?: { id: string; url: string; name: string; type: string }[];
 }
 
 interface PieChartData {
   name: string;
   value: number;
+  [key: string]: string | number;
 }
 
 interface ReportData {
@@ -71,9 +79,14 @@ export default function ReportsPage() {
         if (!response.ok) {
           throw new Error('Failed to fetch products');
         }
+        
+        // handle different response formats
         const data = await response.json();
-        setProducts(data);
-        generateReportData(data);
+        // check if data is an array (direct products array) or has a products property
+        const productArray = Array.isArray(data) ? data : (data?.products || []);
+        
+        setProducts(productArray);
+        generateReportData(productArray);
       } catch (error) {
         console.error('Error fetching products:', error);
         toast.error('Failed to load products');
@@ -88,20 +101,42 @@ export default function ReportsPage() {
   }, [session, dateRange]);
 
   const generateReportData = (products: Product[]) => {
+    if (!Array.isArray(products) || products.length === 0) {
+      // set default empty state
+      setReportData({
+        totalProducts: 0,
+        totalValue: 0,
+        lowStockItems: 0,
+        expiringItems: 0,
+        categoryDistribution: [],
+        stockValueByCategory: [],
+      });
+      return;
+    }
+    
     const now = new Date();
     const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
-    // Calculate total value and low stock items
+    // Calculate total value and low stock items - handle null/undefined values
     const totalValue = products.reduce((sum, product) => {
-      return sum + product.stockQuantity * product.unitCost;
+      const quantity = product.stockQuantity || 0;
+      const cost = product.unitCost || 0;
+      return sum + (quantity * cost);
     }, 0);
 
-    const lowStockItems = products.filter(product => 
-      product.reorderPoint && product.stockQuantity <= product.reorderPoint
-    ).length;
+    // Use coalescing for nullable values
+    const lowStockItems = products.filter(product => {
+      // @ts-ignore - reorderPoint doesn't exist in our Product type but we'll check for it
+      const reorderPoint = product.reorderPoint || 0;
+      const stockQuantity = product.stockQuantity || 0;
+      return stockQuantity <= reorderPoint && reorderPoint > 0;
+    }).length;
 
+    // We don't have expiration dates in our schema, but this handles it if added later
     const expiringItems = products.filter(product => {
+      // @ts-ignore - expirationDate doesn't exist in our Product type but we'll check for it
       if (!product.expirationDate) return false;
+      // @ts-ignore
       const expDate = new Date(product.expirationDate);
       return expDate <= thirtyDaysFromNow && expDate >= now;
     }).length;
@@ -114,7 +149,7 @@ export default function ReportsPage() {
       const category = product.category || 'Uncategorized';
       categoryCount[category] = (categoryCount[category] || 0) + 1;
       categoryValue[category] = (categoryValue[category] || 0) + 
-        (product.stockQuantity * product.unitCost);
+        ((product.stockQuantity || 0) * (product.unitCost || 0));
     });
 
     const categoryDistribution = Object.entries(categoryCount).map(([name, value]) => ({
@@ -138,16 +173,15 @@ export default function ReportsPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <LoadingSpinner fullscreen />;
   }
 
+  // ensure productArray is always an array
+  const productArray = Array.isArray(products) ? products : [];
+
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold text-foreground mb-6">Inventory Reports</h1>
+    <div className="w-full max-w-screen-xl mx-auto px-6 mb-6">
+      <PageHeader title="Inventory Reports" />
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
@@ -174,54 +208,31 @@ export default function ReportsPage() {
       {/* Charts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
         {/* Category Distribution */}
-        <div className="chart-container">
-          <h3 className="text-lg font-medium text-foreground mb-4">Products by Category</h3>
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={reportData.categoryDistribution}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }: { name: string; percent: number }) => 
-                    `${name} (${(percent * 100).toFixed(0)}%)`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {reportData.categoryDistribution.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+        <ChartCard 
+          title="Products by Category"
+          description="Distribution of products across categories">
+          <CategoryChart
+            data={reportData.categoryDistribution}
+            categoryKey="name"
+            valueKey="value"
+            valueLabel="Products"
+            displayAsPie={true}
+            height={320}
+          />
+        </ChartCard>
 
         {/* Stock Value by Category */}
-        <div className="chart-container">
-          <h3 className="text-lg font-medium text-foreground mb-4">Stock Value by Category</h3>
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={reportData.stockValueByCategory}>
-                <CartesianGrid strokeDasharray="3 3" stroke="currentColor" opacity={0.1} />
-                <XAxis dataKey="name" stroke="currentColor" opacity={0.7} />
-                <YAxis stroke="currentColor" opacity={0.7} />
-                <Tooltip 
-                  contentStyle={{
-                    backgroundColor: 'var(--card)',
-                    border: '1px solid var(--border)',
-                    borderRadius: 'var(--radius)',
-                  }}
-                />
-                <Legend />
-                <Bar dataKey="value" fill="var(--primary)" name="Value ($)" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+        <ChartCard 
+          title="Stock Value by Category"
+          description="Monetary value of inventory by category">
+          <CategoryChart
+            data={reportData.stockValueByCategory}
+            categoryKey="name"
+            valueKey="value"
+            valueLabel="Stock Value ($)"
+            height={320}
+          />
+        </ChartCard>
       </div>
 
       {/* Low Stock Items Table */}
@@ -238,8 +249,13 @@ export default function ReportsPage() {
               </tr>
             </thead>
             <tbody>
-              {products
-                .filter(product => product.reorderPoint && product.stockQuantity <= product.reorderPoint)
+              {productArray
+                .filter(product => {
+                  // @ts-ignore - reorderPoint doesn't exist in our schema
+                  const reorderPoint = product.reorderPoint || 0;
+                  const stockQuantity = product.stockQuantity || 0;
+                  return stockQuantity <= reorderPoint && reorderPoint > 0;
+                })
                 .map((product) => (
                   <tr key={product.id}>
                     <td>
@@ -250,11 +266,24 @@ export default function ReportsPage() {
                         SKU: {product.sku}
                       </div>
                     </td>
-                    <td className="text-foreground">{product.stockQuantity}</td>
-                    <td className="text-foreground">{product.reorderPoint}</td>
+                    <td className="text-foreground">{product.stockQuantity || 0}</td>
+                    {/* @ts-ignore - reorderPoint doesn't exist in our schema */}
+                    <td className="text-foreground">{product.reorderPoint || 0}</td>
                     <td className="text-foreground">{product.category || 'N/A'}</td>
                   </tr>
                 ))}
+                {productArray.filter(p => {
+                  // @ts-ignore
+                  const reorderPoint = p.reorderPoint || 0;
+                  const stockQuantity = p.stockQuantity || 0;
+                  return stockQuantity <= reorderPoint && reorderPoint > 0;
+                }).length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="text-center py-4 text-muted-foreground">
+                      No low stock items found
+                    </td>
+                  </tr>
+                )}
             </tbody>
           </table>
         </div>

@@ -26,6 +26,10 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import CategoryChart from '@/components/features/CategoryChart';
+import ChartCard from '@/components/features/ChartCard';
+import { useTheme } from "next-themes";
+import PageHeader from "@/components/layout/PageHeader";
 
 interface AnalyticsData {
   totalSales: number;
@@ -36,11 +40,6 @@ interface AnalyticsData {
     name: string;
     quantity: number;
     revenue: number;
-  }>;
-  lowStockProducts: Array<{
-    id: string;
-    name: string;
-    stockQuantity: number;
   }>;
   salesByCategory: Array<{
     category: string;
@@ -54,6 +53,161 @@ interface AnalyticsData {
 }
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
+
+function DailySalesChart({ data }: { data: any[] }) {
+  const { resolvedTheme } = useTheme();
+  const [salesLineColor, setSalesLineColor] = useState('#4f46e5');
+  const [revenueLineColor, setRevenueLineColor] = useState('#10b981');
+  const [textColor, setTextColor] = useState('rgba(0, 0, 0, 0.87)');
+  
+  // Update colors when theme changes
+  useEffect(() => {
+    setSalesLineColor(resolvedTheme === 'dark' ? '#818cf8' : '#4f46e5');
+    setRevenueLineColor(resolvedTheme === 'dark' ? '#34d399' : '#10b981');
+    setTextColor(resolvedTheme === 'dark' ? 'rgba(255, 255, 255, 0.87)' : 'rgba(0, 0, 0, 0.87)');
+  }, [resolvedTheme]);
+
+  // Format large numbers with K, M, B suffixes
+  const formatLargeNumber = (value: number) => {
+    // For integers or amounts over 1000, don't show decimals
+    if (value >= 1000 || Number.isInteger(value)) {
+      if (value >= 1000000000) {
+        return Math.round(value / 1000000000) + 'B';
+      } else if (value >= 1000000) {
+        return Math.round(value / 1000000) + 'M';
+      } else if (value >= 1000) {
+        return Math.round(value / 1000) + 'K';
+      }
+      return Math.round(value).toString();
+    }
+    // For smaller values, keep decimals
+    if (value >= 1000000000) {
+      return (value / 1000000000).toFixed(1) + 'B';
+    } else if (value >= 1000000) {
+      return (value / 1000000).toFixed(1) + 'M';
+    } else if (value >= 1000) {
+      return (value / 1000).toFixed(1) + 'K';
+    }
+    return value.toString();
+  };
+
+  const formatTooltipValue = (value: any, name: string) => {
+    const numValue = Number(value);
+    if (name === 'Revenue ($)') {
+      return [`$${numValue.toLocaleString(undefined, {maximumFractionDigits: numValue >= 1000 ? 0 : 2})}`, name];
+    }
+    // Always show sales as integers
+    return [Math.round(numValue).toLocaleString(), name];
+  };
+
+  const formatCurrency = (value: number) => {
+    return `$${formatLargeNumber(value)}`;
+  };
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  };
+
+  return (
+    <div style={{ width: '100%', height: '100%' }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart
+          data={data}
+          margin={{ top: 20, right: 30, left: 0, bottom: 30 }}
+        >
+          <CartesianGrid 
+            strokeDasharray="3 3" 
+            stroke="var(--border)" 
+            opacity={0.3}
+            horizontal={true}
+            vertical={false}
+          />
+          <XAxis 
+            dataKey="date" 
+            stroke={textColor}
+            opacity={0.7}
+            tick={{ fill: textColor, fontSize: 11 }}
+            tickLine={{ stroke: textColor }}
+            axisLine={{ stroke: textColor }}
+            height={40}
+            angle={-30}
+            textAnchor="end"
+            interval={0}
+            tickFormatter={formatDate}
+          />
+          <YAxis 
+            stroke={textColor}
+            opacity={0.7}
+            tick={{ fill: textColor }}
+            tickLine={{ stroke: textColor }}
+            axisLine={{ stroke: textColor }}
+            yAxisId="left"
+            // Always show sales as integers
+            tickFormatter={(value) => Math.round(value).toString()}
+            width={30}
+            padding={{ top: 10 }}
+            domain={[0, 'auto']}
+          />
+          <YAxis 
+            yAxisId="right"
+            orientation="right"
+            stroke={textColor}
+            opacity={0.7}
+            tick={{ fill: textColor }}
+            tickLine={{ stroke: textColor }}
+            axisLine={{ stroke: textColor }}
+            tickFormatter={formatCurrency}
+            width={40}
+            padding={{ top: 10 }}
+            domain={[0, 'auto']}
+          />
+          <Tooltip 
+            formatter={formatTooltipValue}
+            contentStyle={{
+              backgroundColor: 'var(--card)',
+              border: '1px solid var(--border)',
+              borderRadius: '0.5rem',
+              color: 'var(--foreground)'
+            }}
+            labelStyle={{
+              color: 'var(--foreground)'
+            }}
+            labelFormatter={formatDate}
+          />
+          <Legend 
+            formatter={(value) => <span style={{ color: textColor }}>{value}</span>}
+            wrapperStyle={{
+              paddingTop: '10px'
+            }}
+            verticalAlign="top"
+            height={36}
+          />
+          <Line
+            type="monotone"
+            dataKey="sales"
+            stroke={salesLineColor}
+            name="Number of Sales"
+            strokeWidth={2}
+            dot={{ stroke: salesLineColor, strokeWidth: 2, r: 3 }}
+            activeDot={{ stroke: salesLineColor, strokeWidth: 2, r: 5 }}
+            yAxisId="left"
+          />
+          <Line
+            type="monotone"
+            dataKey="revenue"
+            stroke={revenueLineColor}
+            name="Revenue ($)"
+            strokeWidth={2}
+            dot={{ stroke: revenueLineColor, strokeWidth: 2, r: 3 }}
+            activeDot={{ stroke: revenueLineColor, strokeWidth: 2, r: 5 }}
+            yAxisId="right"
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
 
 export default function AnalyticsPage() {
   const { data: session } = useSession();
@@ -88,9 +242,8 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Analytics Dashboard</h1>
+    <div className="w-full max-w-screen-xl mx-auto px-6 mb-6">
+      <PageHeader title="Analytics">
         <Select value={timeRange} onValueChange={setTimeRange}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Select time range" />
@@ -102,7 +255,7 @@ export default function AnalyticsPage() {
             <SelectItem value="365">Last year</SelectItem>
           </SelectContent>
         </Select>
-      </div>
+      </PageHeader>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <Card>
@@ -149,56 +302,18 @@ export default function AnalyticsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Daily Sales</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={analyticsData.dailySales}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="sales"
-                    stroke="#8884d8"
-                    name="Number of Sales"
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="revenue"
-                    stroke="#82ca9d"
-                    name="Revenue ($)"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+        <ChartCard title="Daily Sales">
+          <DailySalesChart data={analyticsData.dailySales} />
+        </ChartCard>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Sales by Category</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={analyticsData.salesByCategory}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="category" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="revenue" fill="#8884d8" name="Revenue ($)" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+        <ChartCard title="Sales by Category">
+          <CategoryChart
+            data={analyticsData.salesByCategory}
+            categoryKey="category"
+            valueKey="revenue"
+            valueLabel="Revenue ($)"
+          />
+        </ChartCard>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -233,58 +348,18 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Revenue Distribution by Category</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={analyticsData.salesByCategory}
-                    dataKey="revenue"
-                    nameKey="category"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={100}
-                    label
-                  >
-                    {analyticsData.salesByCategory.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+        <ChartCard 
+          title="Revenue Distribution by Category" 
+          description="Percentage of total revenue by product category">
+          <CategoryChart
+            data={analyticsData.salesByCategory}
+            categoryKey="category"
+            valueKey="revenue"
+            valueLabel="Revenue ($)"
+            displayAsPie={true}
+          />
+        </ChartCard>
       </div>
-
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>Low Stock Products</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {analyticsData.lowStockProducts.map((product) => (
-              <div
-                key={product.id}
-                className="flex justify-between items-center"
-              >
-                <div>
-                  <p className="font-medium">{product.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {product.stockQuantity} units in stock
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 } 

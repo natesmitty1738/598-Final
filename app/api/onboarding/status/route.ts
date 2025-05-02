@@ -1,94 +1,93 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { PrismaClient } from '@prisma/client';
-import { authOptions } from '../../auth/[...nextauth]/auth-options';
-
-const prisma = new PrismaClient();
+import { getServerSession } from 'next-auth';
+import prisma from '@/lib/prisma';
+import { authOptions } from '@/lib/auth';
+import { getDataKeyForStep } from '@/app/services/OnboardingAutomata';
 
 export async function GET(request: Request) {
   try {
-    // Check authentication
+    // Get the current session
     const session = await getServerSession(authOptions);
-    if (!session || !session.user?.id) {
+    
+    // Check authentication
+    if (!session?.user?.id) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'You must be signed in to access onboarding status' },
         { status: 401 }
       );
     }
-
-    // Get user ID from session
+    
     const userId = session.user.id;
-
-    // Get onboarding status from database
+    
+    // Get the onboarding status with step data in a single query
     const onboarding = await prisma.onboarding.findUnique({
-      where: {
-        userId
+      where: { userId },
+      include: { 
+        stepData: true 
       }
     });
-
-    // Prepare userData object
-    const userData = {
-      businessProfile: null,
-      initialInventory: [],
-      paymentSetup: null,
-    };
-
-    // Get business profile
-    const businessProfile = await prisma.businessProfile.findUnique({
-      where: { userId }
-    });
     
-    if (businessProfile) {
-      userData.businessProfile = businessProfile;
-    }
-
-    // Get payment config
-    const paymentConfig = await prisma.paymentConfig.findUnique({
-      where: { userId }
-    });
-    
-    if (paymentConfig) {
-      userData.paymentSetup = paymentConfig;
-    }
-
-    // Get sample of products for initial inventory setup
-    const products = await prisma.product.findMany({
-      where: { userId },
-      take: 10,
-      orderBy: { createdAt: 'desc' }
-    });
-    
-    if (products.length > 0) {
-      userData.initialInventory = products;
-    }
-
-    // If no onboarding record, create one
+    // If no onboarding record exists, return initial state
     if (!onboarding) {
-      const newOnboarding = await prisma.onboarding.create({
-        data: {
-          userId,
-          completed: false,
-          completedSteps: []
-        }
-      });
-
       return NextResponse.json({
-        completed: newOnboarding.completed,
-        completedSteps: newOnboarding.completedSteps,
-        userData
+        activeStep: 'welcome',
+        currentStepIndex: 0,
+        completedSteps: [],
+        completed: false,
+        formData: {}
       });
     }
-
-    // Return onboarding status with user data
-    return NextResponse.json({
-      completed: onboarding.completed,
-      completedSteps: onboarding.completedSteps,
-      userData
+    
+    // Process step data for client consumption
+    const formData: Record<string, any> = {};
+    
+    // Parse data from JSON strings to objects
+    onboarding.stepData.forEach(stepItem => {
+      try {
+        // Get correct data key for the step
+        const dataKey = getDataKeyForStep(stepItem.stepId);
+        formData[dataKey] = JSON.parse(stepItem.data);
+      } catch (error) {
+        console.warn(`Error parsing data for step ${stepItem.stepId}:`, error);
+      }
     });
+    
+    // Determine current step index based on completed steps
+    let currentStepIndex = 0;
+    let activeStep = 'welcome';
+    
+    const STEPS = ['welcome', 'business-profile', 'inventory-setup', 'payment-setup', 'completion'];
+    
+    if (onboarding.completedSteps.length > 0) {
+      // Find the first incomplete step
+      for (let i = 0; i < STEPS.length; i++) {
+        if (!onboarding.completedSteps.includes(STEPS[i])) {
+          currentStepIndex = i;
+          activeStep = STEPS[i];
+          break;
+        }
+        
+        // If all steps are completed, set to the last step
+        if (i === STEPS.length - 1) {
+          currentStepIndex = i;
+          activeStep = STEPS[i];
+        }
+      }
+    }
+    
+    return NextResponse.json({
+      activeStep,
+      currentStepIndex,
+      completedSteps: onboarding.completedSteps,
+      completed: onboarding.completed,
+      formData
+    });
+    
   } catch (error) {
-    console.error('Error checking onboarding status:', error);
+    console.error('Error fetching onboarding status:', error);
+    
     return NextResponse.json(
-      { error: 'Something went wrong' },
+      { error: 'Failed to fetch onboarding status' },
       { status: 500 }
     );
   }

@@ -18,13 +18,24 @@ export async function GET(
         id: params.id,
         userId: session.user.id,
       },
+      include: {
+        images: true,
+        documents: true,
+      }
     });
 
     if (!product) {
       return new NextResponse("Product not found", { status: 404 });
     }
 
-    return NextResponse.json(product);
+    // Transform the product to include image and document URLs as arrays
+    const transformedProduct = {
+      ...product,
+      images: product.images.map(img => img.url),
+      documents: product.documents.map(doc => doc.url)
+    };
+
+    return NextResponse.json(transformedProduct);
   } catch (error) {
     console.error("Error fetching product:", error);
     return new NextResponse("Internal Server Error", { status: 500 });
@@ -41,7 +52,9 @@ export async function PUT(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const body = await req.json();
+    // Parse the request body as JSON
+    const data = await req.json();
+    
     const {
       sku,
       name,
@@ -53,7 +66,9 @@ export async function PUT(
       category,
       size,
       color,
-    } = body;
+      images = [],
+      documents = []
+    } = data;
 
     // Validate required fields
     if (!sku || !name || unitCost === undefined || sellingPrice === undefined || stockQuantity === undefined) {
@@ -72,26 +87,67 @@ export async function PUT(
       return new NextResponse("SKU already exists", { status: 400 });
     }
 
-    const product = await prisma.product.update({
-      where: {
-        id: params.id,
-        userId: session.user.id,
-      },
-      data: {
-        sku,
-        name,
-        description,
-        unitCost,
-        sellingPrice,
-        stockQuantity,
-        location,
-        category,
-        size,
-        color,
-      },
+    // Update the product with a transaction to handle images and documents
+    const updatedProduct = await prisma.$transaction(async (tx) => {
+      // First, delete existing images and documents
+      await tx.image.deleteMany({
+        where: { productId: params.id }
+      });
+      
+      await tx.document.deleteMany({
+        where: { productId: params.id }
+      });
+      
+      // Then update the product with new data
+      const product = await tx.product.update({
+        where: {
+          id: params.id,
+          userId: session.user.id,
+        },
+        data: {
+          sku,
+          name,
+          description,
+          unitCost,
+          sellingPrice,
+          stockQuantity,
+          location,
+          category,
+          size,
+          color,
+          // Create new images
+          images: {
+            create: images.map((url: string) => ({
+              url,
+              alt: name
+            }))
+          },
+          // Create new documents
+          documents: {
+            create: documents.map((url: string) => ({
+              url,
+              name: `Document for ${name}`,
+              type: 'document'
+            }))
+          }
+        },
+        include: {
+          images: true,
+          documents: true
+        }
+      });
+      
+      return product;
     });
 
-    return NextResponse.json(product);
+    // Transform the updated product to include image and document URLs as arrays
+    const transformedProduct = {
+      ...updatedProduct,
+      images: updatedProduct.images.map(img => img.url),
+      documents: updatedProduct.documents.map(doc => doc.url)
+    };
+
+    return NextResponse.json(transformedProduct);
   } catch (error) {
     console.error("Error updating product:", error);
     return new NextResponse("Internal Server Error", { status: 500 });
@@ -108,19 +164,30 @@ export async function DELETE(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    // First, delete all associated sale items
-    await prisma.saleItem.deleteMany({
-      where: {
-        productId: params.id,
-      },
-    });
-
-    // Then delete the product
-    await prisma.product.delete({
-      where: {
-        id: params.id,
-        userId: session.user.id,
-      },
+    // Delete with a transaction to clean up related records
+    await prisma.$transaction(async (tx) => {
+      // Delete associated images
+      await tx.image.deleteMany({
+        where: { productId: params.id }
+      });
+      
+      // Delete associated documents
+      await tx.document.deleteMany({
+        where: { productId: params.id }
+      });
+      
+      // Delete associated sale items
+      await tx.saleItem.deleteMany({
+        where: { productId: params.id }
+      });
+      
+      // Delete the product
+      await tx.product.delete({
+        where: {
+          id: params.id,
+          userId: session.user.id,
+        }
+      });
     });
 
     return new NextResponse(null, { status: 204 });

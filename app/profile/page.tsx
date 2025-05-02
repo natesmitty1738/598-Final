@@ -1,59 +1,100 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
-import { redirect } from 'next/navigation';
-import BusinessProfileForm from '../components/BusinessProfileForm';
+import React, { useState } from 'react';
+import { ChevronRight, UserCircle, CreditCard, Bell, Building2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import BusinessProfileTab from './BusinessProfileTab';
+import AccountSettingsTab from './AccountSettingsTab';
+import PaymentMethodsTab from './PaymentMethodsTab';
+import NotificationPreferencesTab from './NotificationPreferencesTab';
+
+type SettingsTab = {
+  id: string;
+  title: string;
+  icon: React.ReactNode;
+  content: React.ReactNode;
+};
 
 export default function ProfilePage() {
-  const { data: session, status } = useSession();
-  
-  if (status === 'loading') {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-  
-  if (status === 'unauthenticated') {
-    redirect('/login?callbackUrl=/profile');
-    return null;
-  }
-  
+  // Define tabs with their content components
+  const tabs: SettingsTab[] = [
+    {
+      id: 'account',
+      title: 'Account Settings',
+      icon: <UserCircle className="h-4 w-4" />,
+      content: <AccountSettingsTab />,
+    },
+    {
+      id: 'business',
+      title: 'Business Profile',
+      icon: <Building2 className="h-4 w-4" />,
+      content: <BusinessProfileTab />,
+    },
+    {
+      id: 'payment',
+      title: 'Payment Methods',
+      icon: <CreditCard className="h-4 w-4" />,
+      content: <PaymentMethodsTab />,
+    },
+    {
+      id: 'notifications',
+      title: 'Notifications',
+      icon: <Bell className="h-4 w-4" />,
+      content: <NotificationPreferencesTab />,
+    },
+  ];
+
+  // Use React's useState to track the active tab
+  const [activeTab, setActiveTab] = useState(tabs[0].id);
+
+  // Handler for changing tabs
+  const handleTabChange = (tabId: string) => {
+    setActiveTab(tabId);
+  };
+
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto py-6 md:py-10">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">Account Settings</h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">
-          Manage your account details and business profile
-        </p>
+        <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
       </div>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        <div className="lg:col-span-1">
-          <div className="bg-card dark:bg-card p-4 rounded-lg shadow-md">
-            <nav className="space-y-2">
-              <a href="#profile" className="block p-2 rounded-md bg-primary/10 text-primary font-medium">
-                Business Profile
-              </a>
-              <a href="#account" className="block p-2 rounded-md hover:bg-muted/50 transition-colors">
-                Account Settings
-              </a>
-              <a href="#password" className="block p-2 rounded-md hover:bg-muted/50 transition-colors">
-                Change Password
-              </a>
-              <a href="#notifications" className="block p-2 rounded-md hover:bg-muted/50 transition-colors">
-                Notification Preferences
-              </a>
-            </nav>
+
+      <div className="flex flex-col md:flex-row md:space-x-8 lg:space-x-12">
+        {/* Sidebar with tabs */}
+        <aside className="md:w-1/4 mb-8 md:mb-0">
+          <nav className="flex flex-col space-y-1">
+            {tabs.map((tab) => (
+              <Button
+                key={tab.id}
+                variant="ghost"
+                className={cn(
+                  "justify-start px-4 py-2 h-auto text-sm",
+                  activeTab === tab.id
+                    ? "bg-muted font-medium text-foreground"
+                    : "text-muted-foreground"
+                )}
+                onClick={() => handleTabChange(tab.id)}
+              >
+                <div className="flex items-center">
+                  <span className="mr-2">{tab.icon}</span>
+                  <span>{tab.title}</span>
+                </div>
+                <ChevronRight className={cn(
+                  "ml-auto h-4 w-4 text-muted-foreground transition-transform",
+                  activeTab === tab.id ? "rotate-90" : ""
+                )} />
+              </Button>
+            ))}
+          </nav>
+        </aside>
+
+        {/* Main content area */}
+        <main className="flex-1 md:max-w-3xl">
+          <div className="bg-card rounded-lg border shadow-sm p-6">
+            {/* Display content for active tab */}
+            {tabs.find(tab => tab.id === activeTab)?.content}
           </div>
-        </div>
-        
-        <div className="lg:col-span-3">
-          <section id="profile">
-            <BusinessProfileForm />
-          </section>
-        </div>
+        </main>
       </div>
     </div>
   );

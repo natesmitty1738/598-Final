@@ -71,6 +71,29 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.role = user.role;
       }
+      
+      // On every JWT refresh, verify the user still exists in the database
+      if (token?.id) {
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: token.id },
+            select: { id: true, role: true }
+          });
+          
+          if (!dbUser) {
+            console.warn(`JWT user ${token.id} no longer exists in database`);
+            // Return an empty token to force re-authentication
+            return {};
+          }
+          
+          // Ensure role is up-to-date
+          token.role = dbUser.role;
+        } catch (error) {
+          console.error('Error verifying user in JWT callback:', error);
+          // Don't invalidate the token on DB errors
+        }
+      }
+      
       return token;
     },
     async session({ session, token }) {

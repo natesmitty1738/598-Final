@@ -1,25 +1,26 @@
 import { PrismaClient, PaymentStatus, PaymentMethod, Role } from '@prisma/client';
 import { hash } from 'bcrypt';
+import bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
-// Mock data for users
+// User data
 const users = [
   {
     name: 'Demo User',
     email: 'demo@example.com',
     password: 'password123',
-    role: Role.USER,
+    role: 'USER',
   },
   {
     name: 'Admin User',
     email: 'admin@example.com',
-    password: 'admin123',
-    role: Role.ADMIN,
+    password: 'password123',
+    role: 'ADMIN',
   },
 ];
 
-// Mock data for business profiles
+// Business profile data
 const businessProfiles = [
   {
     businessName: 'Coffee Shop Demo',
@@ -49,7 +50,7 @@ const businessProfiles = [
   },
 ];
 
-// Mock data for products
+// Product categories and attributes
 const productCategories = [
   'Coffee',
   'Tea',
@@ -79,7 +80,6 @@ const productColors = [
   'Orange',
 ];
 
-// Generate mock products
 function generateProducts(userId: string, count: number) {
   const products = [];
   
@@ -127,7 +127,6 @@ function generateProducts(userId: string, count: number) {
   return products;
 }
 
-// Generate mock sales
 function generateSales(userId: string, products: any[], count: number) {
   const sales = [];
   const paymentMethods = [PaymentMethod.CASH, PaymentMethod.CREDIT_CARD, PaymentMethod.DEBIT_CARD, PaymentMethod.STRIPE];
@@ -139,7 +138,6 @@ function generateSales(userId: string, products: any[], count: number) {
   ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
   
   for (let i = 0; i < count; i++) {
-    // Random date between 90 days ago and now
     const createdAt = new Date(
       ninetyDaysAgo.getTime() + Math.random() * (now.getTime() - ninetyDaysAgo.getTime())
     );
@@ -181,36 +179,76 @@ function generateSales(userId: string, products: any[], count: number) {
   return sales;
 }
 
+async function seedUsers(prisma: PrismaClient) {
+  console.log('Creating users...');
+
+  const hashedPassword = await bcrypt.hash('password123', 10);
+
+  const demoUser = await prisma.user.upsert({
+    where: { email: 'demo@example.com' },
+    update: {},
+    create: {
+      email: 'demo@example.com',
+      name: 'Demo User',
+      password: hashedPassword,
+      role: 'USER',
+      permissions: []
+    },
+  });
+  
+  const adminUser = await prisma.user.upsert({
+    where: { email: 'admin@example.com' },
+    update: {},
+    create: {
+      email: 'admin@example.com',
+      name: 'Admin User',
+      password: hashedPassword,
+      role: 'ADMIN',
+      permissions: ['MANAGE_INVENTORY', 'MANAGE_SALES', 'VIEW_REPORTS', 'MANAGE_EMPLOYEES', 'MANAGE_SETTINGS', 'VIEW_ANALYTICS']
+    },
+  });
+  
+  const onboardingUser = await prisma.user.upsert({
+    where: { email: 'onboarding@example.com' },
+    update: {},
+    create: {
+      email: 'onboarding@example.com',
+      name: 'Onboarding User',
+      password: hashedPassword,
+      role: 'USER',
+      permissions: []
+    },
+  });
+  
+  await prisma.onboarding.upsert({
+    where: { userId: onboardingUser.id },
+    update: {},
+    create: {
+      userId: onboardingUser.id,
+      completedSteps: ['welcome'],
+      completed: false
+    }
+  });
+  
+  console.log('Created user:', demoUser.email);
+  console.log('Created user:', adminUser.email);
+  console.log('Created onboarding test user:', onboardingUser.email);
+  
+  return { demoUser, adminUser, onboardingUser };
+}
+
 async function main() {
   console.log('Starting database seeding...');
   
   // Create users
-  console.log('Creating users...');
-  const createdUsers = [];
-  
-  for (const user of users) {
-    const hashedPassword = await hash(user.password, 10);
-    const createdUser = await prisma.user.upsert({
-      where: { email: user.email },
-      update: {},
-      create: {
-        name: user.name,
-        email: user.email,
-        password: hashedPassword,
-        role: user.role as any,
-      },
-    });
-    
-    createdUsers.push(createdUser);
-    console.log(`Created user: ${createdUser.email}`);
-  }
+  const { demoUser, adminUser, onboardingUser } = await seedUsers(prisma);
   
   // Create business profiles
   console.log('Creating business profiles...');
   
   for (let i = 0; i < businessProfiles.length; i++) {
     const profile = businessProfiles[i];
-    const user = createdUsers[i];
+    const user = i === 0 ? demoUser : adminUser;
     
     await prisma.businessProfile.upsert({
       where: { userId: user.id },
@@ -228,7 +266,7 @@ async function main() {
   console.log('Creating products...');
   const allProducts = [];
   
-  for (const user of createdUsers) {
+  for (const user of [demoUser, adminUser]) {
     const productCount = Math.floor(Math.random() * 20) + 10; // 10-30 products per user
     const products = generateProducts(user.id, productCount);
     
@@ -246,7 +284,7 @@ async function main() {
   // Create sales
   console.log('Creating sales...');
   
-  for (const user of createdUsers) {
+  for (const user of [demoUser, adminUser]) {
     const userProducts = allProducts.filter(p => p.userId === user.id);
     const saleCount = Math.floor(Math.random() * 50) + 20; // 20-70 sales per user
     const sales = generateSales(user.id, userProducts, saleCount);
