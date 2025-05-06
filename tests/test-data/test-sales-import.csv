@@ -1,0 +1,7 @@
+date,productName,productId,quantity,unitPrice,totalAmount
+2023-01-01,Test Product A,,5,19.99,99.95
+2023-01-01,Test Product B,,3,29.99,89.97
+2023-01-02,Test Product A,,2,19.99,39.98
+2023-01-02,Test Product C,,1,49.99,49.99
+2023-01-03,test product a,,4,21.99,87.96
+2023-01-03,Test Product D,TEST-FIXED-ID,2,39.99,79.98

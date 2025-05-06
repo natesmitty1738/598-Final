@@ -1,0 +1,205 @@
+date,productId,productName,quantity,unitPrice,totalAmount
+2023-01-05,P001,Premium Headphones,3,149.99,449.97
+2023-01-12,P001,Premium Headphones,5,149.99,749.95
+2023-01-18,P001,Premium Headphones,2,149.99,299.98
+2023-01-25,P001,Premium Headphones,4,149.99,599.96
+2023-02-02,P001,Premium Headphones,1,159.99,159.99
+2023-02-08,P001,Premium Headphones,3,159.99,479.97
+2023-02-15,P001,Premium Headphones,2,159.99,319.98
+2023-02-22,P001,Premium Headphones,5,159.99,799.95
+2023-03-01,P001,Premium Headphones,2,169.99,339.98
+2023-03-08,P001,Premium Headphones,4,169.99,679.96
+2023-03-15,P001,Premium Headphones,3,169.99,509.97
+2023-03-22,P001,Premium Headphones,1,169.99,169.99
+2023-04-05,P001,Premium Headphones,2,159.99,319.98
+2023-04-12,P001,Premium Headphones,4,159.99,639.96
+2023-04-19,P001,Premium Headphones,3,159.99,479.97
+2023-04-26,P001,Premium Headphones,5,159.99,799.95
+2023-05-03,P001,Premium Headphones,3,149.99,449.97
+2023-05-10,P001,Premium Headphones,6,149.99,899.94
+2023-05-17,P001,Premium Headphones,2,149.99,299.98
+2023-05-24,P001,Premium Headphones,4,149.99,599.96
+2023-06-07,P001,Premium Headphones,5,139.99,699.95
+2023-06-14,P001,Premium Headphones,7,139.99,979.93
+2023-06-21,P001,Premium Headphones,3,139.99,419.97
+2023-06-28,P001,Premium Headphones,4,139.99,559.96
+2023-07-05,P002,Wireless Earbuds,10,79.99,799.90
+2023-07-12,P002,Wireless Earbuds,8,79.99,639.92
+2023-07-19,P002,Wireless Earbuds,6,79.99,479.94
+2023-07-26,P002,Wireless Earbuds,9,79.99,719.91
+2023-08-02,P002,Wireless Earbuds,5,89.99,449.95
+2023-08-09,P002,Wireless Earbuds,7,89.99,629.93
+2023-08-16,P002,Wireless Earbuds,4,89.99,359.96
+2023-08-23,P002,Wireless Earbuds,6,89.99,539.94
+2023-08-30,P002,Wireless Earbuds,8,89.99,719.92
+2023-09-06,P002,Wireless Earbuds,3,99.99,299.97
+2023-09-13,P002,Wireless Earbuds,5,99.99,499.95
+2023-09-20,P002,Wireless Earbuds,2,99.99,199.98
+2023-09-27,P002,Wireless Earbuds,4,99.99,399.96
+2023-10-04,P002,Wireless Earbuds,6,89.99,539.94
+2023-10-11,P002,Wireless Earbuds,8,89.99,719.92
+2023-10-18,P002,Wireless Earbuds,4,89.99,359.96
+2023-10-25,P002,Wireless Earbuds,7,89.99,629.93
+2023-11-01,P002,Wireless Earbuds,5,79.99,399.95
+2023-11-08,P002,Wireless Earbuds,9,79.99,719.91
+2023-11-15,P002,Wireless Earbuds,7,79.99,559.93
+2023-11-22,P002,Wireless Earbuds,11,69.99,769.89
+2023-11-29,P002,Wireless Earbuds,13,69.99,909.87
+2023-12-06,P002,Wireless Earbuds,10,69.99,699.90
+2023-12-13,P002,Wireless Earbuds,15,69.99,1049.85
+2023-12-20,P002,Wireless Earbuds,17,69.99,1189.83
+2023-01-03,P003,Smart Watch Pro,2,199.99,399.98
+2023-01-10,P003,Smart Watch Pro,1,199.99,199.99
+2023-01-17,P003,Smart Watch Pro,3,199.99,599.97
+2023-01-24,P003,Smart Watch Pro,2,199.99,399.98
+2023-02-07,P003,Smart Watch Pro,4,219.99,879.96
+2023-02-14,P003,Smart Watch Pro,2,219.99,439.98
+2023-02-21,P003,Smart Watch Pro,1,219.99,219.99
+2023-02-28,P003,Smart Watch Pro,3,219.99,659.97
+2023-03-07,P003,Smart Watch Pro,2,229.99,459.98
+2023-03-14,P003,Smart Watch Pro,4,229.99,919.96
+2023-03-21,P003,Smart Watch Pro,3,229.99,689.97
+2023-03-28,P003,Smart Watch Pro,2,229.99,459.98
+2023-04-04,P003,Smart Watch Pro,1,219.99,219.99
+2023-04-11,P003,Smart Watch Pro,3,219.99,659.97
+2023-04-18,P003,Smart Watch Pro,2,219.99,439.98
+2023-04-25,P003,Smart Watch Pro,4,219.99,879.96
+2023-05-02,P004,Portable Bluetooth Speaker,5,59.99,299.95
+2023-05-09,P004,Portable Bluetooth Speaker,7,59.99,419.93
+2023-05-16,P004,Portable Bluetooth Speaker,3,59.99,179.97
+2023-05-23,P004,Portable Bluetooth Speaker,6,59.99,359.94
+2023-05-30,P004,Portable Bluetooth Speaker,4,64.99,259.96
+2023-06-06,P004,Portable Bluetooth Speaker,8,64.99,519.92
+2023-06-13,P004,Portable Bluetooth Speaker,5,64.99,324.95
+2023-06-20,P004,Portable Bluetooth Speaker,9,64.99,584.91
+2023-06-27,P004,Portable Bluetooth Speaker,6,64.99,389.94
+2023-07-04,P004,Portable Bluetooth Speaker,4,69.99,279.96
+2023-07-11,P004,Portable Bluetooth Speaker,7,69.99,489.93
+2023-07-18,P004,Portable Bluetooth Speaker,3,69.99,209.97
+2023-07-25,P004,Portable Bluetooth Speaker,5,69.99,349.95
+2023-08-01,P004,Portable Bluetooth Speaker,8,64.99,519.92
+2023-08-08,P004,Portable Bluetooth Speaker,6,64.99,389.94
+2023-08-15,P004,Portable Bluetooth Speaker,10,64.99,649.90
+2023-08-22,P004,Portable Bluetooth Speaker,4,64.99,259.96
+2023-08-29,P004,Portable Bluetooth Speaker,7,59.99,419.93
+2023-09-05,P004,Portable Bluetooth Speaker,9,59.99,539.91
+2023-09-12,P004,Portable Bluetooth Speaker,5,59.99,299.95
+2023-09-19,P004,Portable Bluetooth Speaker,8,59.99,479.92
+2023-01-08,P005,Gaming Mouse,12,49.99,599.88
+2023-01-15,P005,Gaming Mouse,8,49.99,399.92
+2023-01-22,P005,Gaming Mouse,15,49.99,749.85
+2023-01-29,P005,Gaming Mouse,10,49.99,499.90
+2023-02-05,P005,Gaming Mouse,14,54.99,769.86
+2023-02-12,P005,Gaming Mouse,9,54.99,494.91
+2023-02-19,P005,Gaming Mouse,11,54.99,604.89
+2023-02-26,P005,Gaming Mouse,7,54.99,384.93
+2023-03-05,P005,Gaming Mouse,13,59.99,779.87
+2023-03-12,P005,Gaming Mouse,8,59.99,479.92
+2023-03-19,P005,Gaming Mouse,12,59.99,719.88
+2023-03-26,P005,Gaming Mouse,6,59.99,359.94
+2023-04-02,P005,Gaming Mouse,9,54.99,494.91
+2023-04-09,P005,Gaming Mouse,14,54.99,769.86
+2023-04-16,P005,Gaming Mouse,11,54.99,604.89
+2023-04-23,P005,Gaming Mouse,16,54.99,879.84
+2023-04-30,P005,Gaming Mouse,10,49.99,499.90
+2023-05-07,P005,Gaming Mouse,13,49.99,649.87
+2023-05-14,P005,Gaming Mouse,9,49.99,449.91
+2023-05-21,P005,Gaming Mouse,15,49.99,749.85
+2023-05-28,P006,Mechanical Keyboard,6,129.99,779.94
+2023-06-04,P006,Mechanical Keyboard,4,129.99,519.96
+2023-06-11,P006,Mechanical Keyboard,7,129.99,909.93
+2023-06-18,P006,Mechanical Keyboard,3,129.99,389.97
+2023-06-25,P006,Mechanical Keyboard,5,139.99,699.95
+2023-07-02,P006,Mechanical Keyboard,8,139.99,1119.92
+2023-07-09,P006,Mechanical Keyboard,4,139.99,559.96
+2023-07-16,P006,Mechanical Keyboard,6,139.99,839.94
+2023-07-23,P006,Mechanical Keyboard,9,139.99,1259.91
+2023-07-30,P006,Mechanical Keyboard,3,149.99,449.97
+2023-08-06,P006,Mechanical Keyboard,5,149.99,749.95
+2023-08-13,P006,Mechanical Keyboard,7,149.99,1049.93
+2023-08-20,P006,Mechanical Keyboard,2,149.99,299.98
+2023-08-27,P006,Mechanical Keyboard,4,139.99,559.96
+2023-09-03,P006,Mechanical Keyboard,6,139.99,839.94
+2023-09-10,P006,Mechanical Keyboard,8,139.99,1119.92
+2023-09-17,P006,Mechanical Keyboard,3,139.99,419.97
+2023-09-24,P007,External SSD 1TB,2,129.99,259.98
+2023-10-01,P007,External SSD 1TB,4,129.99,519.96
+2023-10-08,P007,External SSD 1TB,1,129.99,129.99
+2023-10-15,P007,External SSD 1TB,3,129.99,389.97
+2023-10-22,P007,External SSD 1TB,2,119.99,239.98
+2023-10-29,P007,External SSD 1TB,5,119.99,599.95
+2023-11-05,P007,External SSD 1TB,3,119.99,359.97
+2023-11-12,P007,External SSD 1TB,4,119.99,479.96
+2023-11-19,P007,External SSD 1TB,2,119.99,239.98
+2023-11-26,P007,External SSD 1TB,6,109.99,659.94
+2023-12-03,P007,External SSD 1TB,4,109.99,439.96
+2023-12-10,P007,External SSD 1TB,8,109.99,879.92
+2023-12-17,P007,External SSD 1TB,5,109.99,549.95
+2023-12-24,P007,External SSD 1TB,9,109.99,989.91
+2023-01-06,P008,Noise Cancelling Headphones,3,249.99,749.97
+2023-01-13,P008,Noise Cancelling Headphones,2,249.99,499.98
+2023-01-20,P008,Noise Cancelling Headphones,1,249.99,249.99
+2023-01-27,P008,Noise Cancelling Headphones,4,249.99,999.96
+2023-02-03,P008,Noise Cancelling Headphones,2,259.99,519.98
+2023-02-10,P008,Noise Cancelling Headphones,3,259.99,779.97
+2023-02-17,P008,Noise Cancelling Headphones,1,259.99,259.99
+2023-02-24,P008,Noise Cancelling Headphones,5,259.99,1299.95
+2023-03-03,P008,Noise Cancelling Headphones,2,269.99,539.98
+2023-03-10,P008,Noise Cancelling Headphones,4,269.99,1079.96
+2023-03-17,P008,Noise Cancelling Headphones,1,269.99,269.99
+2023-03-24,P008,Noise Cancelling Headphones,3,269.99,809.97
+2023-03-31,P008,Noise Cancelling Headphones,2,259.99,519.98
+2023-04-07,P009,Fitness Tracker,7,89.99,629.93
+2023-04-14,P009,Fitness Tracker,5,89.99,449.95
+2023-04-21,P009,Fitness Tracker,9,89.99,809.91
+2023-04-28,P009,Fitness Tracker,4,89.99,359.96
+2023-05-05,P009,Fitness Tracker,6,94.99,569.94
+2023-05-12,P009,Fitness Tracker,8,94.99,759.92
+2023-05-19,P009,Fitness Tracker,3,94.99,284.97
+2023-05-26,P009,Fitness Tracker,7,94.99,664.93
+2023-06-02,P009,Fitness Tracker,5,99.99,499.95
+2023-06-09,P009,Fitness Tracker,9,99.99,899.91
+2023-06-16,P009,Fitness Tracker,4,99.99,399.96
+2023-06-23,P009,Fitness Tracker,8,99.99,799.92
+2023-06-30,P009,Fitness Tracker,6,94.99,569.94
+2023-07-07,P009,Fitness Tracker,10,94.99,949.90
+2023-07-14,P009,Fitness Tracker,5,94.99,474.95
+2023-07-21,P009,Fitness Tracker,7,94.99,664.93
+2023-07-28,P010,Smart Home Hub,2,179.99,359.98
+2023-08-04,P010,Smart Home Hub,3,179.99,539.97
+2023-08-11,P010,Smart Home Hub,1,179.99,179.99
+2023-08-18,P010,Smart Home Hub,4,179.99,719.96
+2023-08-25,P010,Smart Home Hub,2,189.99,379.98
+2023-09-01,P010,Smart Home Hub,5,189.99,949.95
+2023-09-08,P010,Smart Home Hub,3,189.99,569.97
+2023-09-15,P010,Smart Home Hub,2,189.99,379.98
+2023-09-22,P010,Smart Home Hub,4,189.99,759.96
+2023-09-29,P010,Smart Home Hub,1,199.99,199.99
+2023-10-06,P010,Smart Home Hub,3,199.99,599.97
+2023-10-13,P010,Smart Home Hub,2,199.99,399.98
+2023-10-20,P010,Smart Home Hub,4,199.99,799.96
+2023-10-27,P011,Smart Doorbell,6,149.99,899.94
+2023-11-03,P011,Smart Doorbell,4,149.99,599.96
+2023-11-10,P011,Smart Doorbell,8,149.99,1199.92
+2023-11-17,P011,Smart Doorbell,3,149.99,449.97
+2023-11-24,P011,Smart Doorbell,5,159.99,799.95
+2023-12-01,P011,Smart Doorbell,7,159.99,1119.93
+2023-12-08,P011,Smart Doorbell,4,159.99,639.96
+2023-12-15,P011,Smart Doorbell,6,159.99,959.94
+2023-12-22,P011,Smart Doorbell,9,159.99,1439.91
+2023-12-29,P011,Smart Doorbell,5,149.99,749.95
+2024-01-05,P011,Smart Doorbell,7,149.99,1049.93
+2024-01-12,P011,Smart Doorbell,3,149.99,449.97
+2024-01-19,P012,Wireless Charging Pad,10,29.99,299.90
+2024-01-26,P012,Wireless Charging Pad,15,29.99,449.85
+2024-02-02,P012,Wireless Charging Pad,8,29.99,239.92
+2024-02-09,P012,Wireless Charging Pad,12,29.99,359.88
+2024-02-16,P012,Wireless Charging Pad,7,34.99,244.93
+2024-02-23,P012,Wireless Charging Pad,14,34.99,489.86
+2024-03-01,P012,Wireless Charging Pad,9,34.99,314.91
+2024-03-08,P012,Wireless Charging Pad,16,34.99,559.84
+2024-03-15,P012,Wireless Charging Pad,11,34.99,384.89
+2024-03-22,P012,Wireless Charging Pad,6,39.99,239.94
+2024-03-29,P012,Wireless Charging Pad,13,39.99,519.87
+2024-04-05,P012,Wireless Charging Pad,8,39.99,319.92
+2024-04-12,P012,Wireless Charging Pad,15,39.99,599.85 

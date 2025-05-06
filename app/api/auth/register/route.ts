@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
 import { hash } from 'bcryptjs';
-import { Permission, Role } from '@prisma/client';
+import { Role } from '@prisma/client';
 import prisma from '@/app/api/prisma';
 
 // Debug environment variables
 console.log("API Route - DATABASE_URL:", process.env.DATABASE_URL);
 
 // Map the frontend roles to database roles and assign default permissions
-const getRoleAndPermissions = (role: string): { role: Role, permissions: Permission[] } => {
+const getRoleAndPermissions = (role: string): { role: Role, permissions: string[] } => {
   switch (role) {
     case 'BUSINESS_ADMIN':
       return {
@@ -19,7 +19,7 @@ const getRoleAndPermissions = (role: string): { role: Role, permissions: Permiss
           'MANAGE_EMPLOYEES', 
           'MANAGE_SETTINGS', 
           'VIEW_ANALYTICS'
-        ] as Permission[]
+        ]
       };
     case 'MANAGER':
       return {
@@ -29,7 +29,7 @@ const getRoleAndPermissions = (role: string): { role: Role, permissions: Permiss
           'MANAGE_SALES', 
           'VIEW_REPORTS', 
           'VIEW_ANALYTICS'
-        ] as Permission[]
+        ]
       };
     case 'SALES_REP':
       return {
@@ -37,7 +37,7 @@ const getRoleAndPermissions = (role: string): { role: Role, permissions: Permiss
         permissions: [
           'MANAGE_SALES', 
           'VIEW_REPORTS'
-        ] as Permission[]
+        ]
       };
     case 'INVENTORY_MANAGER':
       return {
@@ -45,12 +45,12 @@ const getRoleAndPermissions = (role: string): { role: Role, permissions: Permiss
         permissions: [
           'MANAGE_INVENTORY', 
           'VIEW_REPORTS'
-        ] as Permission[]
+        ]
       };
     default:
       return {
         role: 'USER' as Role,
-        permissions: ['VIEW_REPORTS'] as Permission[]
+        permissions: ['VIEW_REPORTS']
       };
   }
 };
@@ -91,9 +91,8 @@ export async function POST(request: Request) {
         data: {
           name,
           email,
-          password: hashedPassword,
-          role,
-          permissions
+          hashedPassword,
+          role
         },
       });
 
@@ -173,9 +172,8 @@ export async function POST(request: Request) {
         data: {
           name,
           email,
-          password: hashedPassword,
+          hashedPassword,
           role,
-          permissions,
           businessId: businessAdmin.id
         },
       });

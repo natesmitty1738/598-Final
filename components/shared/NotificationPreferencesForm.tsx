@@ -304,7 +304,7 @@ export default function NotificationPreferencesForm({
             type="submit"
             disabled={saving}
           >
-            {saving ? 'Saving...' : isWizardMode ? 'Save & Continue' : 'Save Preferences'}
+            {saving ? 'Saving...' : isWizardMode ? 'Save & Continue' : 'Save Changes'}
           </Button>
         </div>
       </form>

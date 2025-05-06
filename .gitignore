@@ -90,3 +90,5 @@ logs
 .cache/
 .temp/
 /all_backups
+# Backups
+/backups/

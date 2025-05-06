@@ -224,11 +224,6 @@ export async function saveProgress(state: OnboardingState, stepId?: StepId, data
           formData: data || state.formData[dataKey] || {}
         };
         
-        console.log('Saving onboarding progress:', {
-          stepId: requestData.stepId,
-          completedStepsCount: requestData.completedSteps.length
-        });
-        
         const response = await fetch('/api/onboarding/progress', {
           method: 'POST',
           headers: {
@@ -277,7 +272,6 @@ export async function saveProgress(state: OnboardingState, stepId?: StepId, data
     }
   }
   
-  console.log('Failed to save progress after retries, proceeding anyway');
   return false;
 }
 
@@ -290,7 +284,6 @@ export function createAutoSave(saveCallback: () => Promise<void>, delay = 2000) 
   return (immediate = false) => {
     // If already saving, don't schedule another save
     if (isSaving) {
-      console.log('Save in progress, not scheduling another');
       return;
     }
     
@@ -307,7 +300,6 @@ export function createAutoSave(saveCallback: () => Promise<void>, delay = 2000) 
       
       // If we saved recently, don't save again immediately
       if (timeSinceLastSave < 1000) {
-        console.log('Saved too recently, skipping immediate save');
         return;
       }
       
@@ -327,7 +319,6 @@ export function createAutoSave(saveCallback: () => Promise<void>, delay = 2000) 
         const timeSinceLastSave = now - lastSaveTime;
         
         if (timeSinceLastSave < 1000) {
-          console.log('Saved too recently, skipping scheduled save');
           return;
         }
         
@@ -356,7 +347,6 @@ export function isOnboardingComplete(state: OnboardingState): boolean {
       
     // If all required steps are not completed, override the flag
     if (!allRequiredStepsCompleted) {
-      console.log('Warning: isCompleted flag is true but not all required steps are completed');
       return false;
     }
     

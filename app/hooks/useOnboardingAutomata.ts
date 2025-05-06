@@ -1,7 +1,4 @@
 /**
- * Simple and reliable onboarding state management
- * 
- * Features:
  * 1. Uses localStorage for all form data until explicit save/completion 
  * 2. Only sends data to server on these events:
  *    - Explicit save by clicking Save button
@@ -14,7 +11,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 
 // Types
-export type StepId = 'welcome' | 'business-profile' | 'inventory-setup' | 'payment-setup' | 'completion';
+export type StepId = 'welcome' | 'business-profile' | 'inventory-setup' | 'payment-setup';
 
 export interface OnboardingState {
   currentStepIndex: number;
@@ -25,7 +22,6 @@ export interface OnboardingState {
     businessProfile: any;
     inventorySetup: any;
     paymentSetup: any;
-    completion: any;
     [key: string]: any;
   };
   hasUnsavedChanges: boolean;
@@ -39,7 +35,6 @@ const STEPS: { id: StepId; title: string }[] = [
   { id: 'business-profile', title: 'Business Profile' },
   { id: 'inventory-setup', title: 'Inventory Setup' },
   { id: 'payment-setup', title: 'Payment Setup' },
-  { id: 'completion', title: 'Completed' },
 ];
 
 const STORAGE_KEY = 'onboarding_state';
@@ -64,8 +59,7 @@ const initialState: OnboardingState = {
     welcome: {},
     businessProfile: {},
     inventorySetup: { products: [] },
-    paymentSetup: {},
-    completion: {}
+    paymentSetup: {}
   },
   hasUnsavedChanges: false,
   isCompleted: false,
@@ -275,8 +269,13 @@ export default function useOnboardingAutomata() {
             }));
           }
         } else {
-          // If server fetch fails but we have localStorage data, that's fine
-          console.log('Using local state, server request failed');
+          // Use local state instead
+          setIsLoading(false);
+          
+          // Create toast notification about offline mode
+          toast.error("Connection issue", {
+            description: "Unable to connect to the server. Using local state."
+          });
         }
       } catch (err) {
         console.error('Error initializing onboarding state:', err);
@@ -363,7 +362,7 @@ export default function useOnboardingAutomata() {
       setState(prev => ({
         ...prev,
         completedSteps: newCompletedSteps,
-        isCompleted: stepId === 'completion',
+        isCompleted: stepId === 'payment-setup',
         hasUnsavedChanges: true
       }));
       
@@ -371,11 +370,11 @@ export default function useOnboardingAutomata() {
       storage.save({
         ...state,
         completedSteps: newCompletedSteps,
-        isCompleted: stepId === 'completion'
+        isCompleted: stepId === 'payment-setup'
       });
       
       // If this is the final step, save to server and mark complete
-      if (stepId === 'completion') {
+      if (stepId === 'payment-setup') {
         try {
           // Save progress first
           await saveToServer();

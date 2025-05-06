@@ -7,198 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id               String            @id @default(cuid())
-  name             String?
-  email            String            @unique
-  password         String
-  role             Role              @default(USER)
-  permissions      Permission[]      @default([])
-  businessId       String?
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  emailVerified    DateTime?
-  image            String?
-  accounts         Account[]
-  businessProfile  BusinessProfile?
-  inventoryChanges InventoryChange[]
-  onboarding       Onboarding?
-  paymentConfig    PaymentConfig?
-  products         Product[]
-  sales            Sale[]
-  sessions         Session[]
-  employer         User?             @relation("BusinessEmployees", fields: [businessId], references: [id])
-  employees        User[]            @relation("BusinessEmployees")
-}
-
-model Product {
-  id               String            @id @default(cuid())
-  sku              String
-  name             String
-  description      String?
-  unitCost         Float?
-  sellingPrice     Float?
-  stockQuantity    Int?
-  location         String?
-  category         String?
-  size             String?
-  color            String?
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  userId           String
-  documents        Document[]
-  images           Image[]
-  inventoryChanges InventoryChange[]
-  createdBy        User              @relation(fields: [userId], references: [id])
-  sales            SaleItem[]
-
-  @@unique([sku, userId])
-}
-
-model Image {
-  id        String   @id @default(cuid())
-  url       String
-  alt       String?
-  productId String
-  createdAt DateTime @default(now())
-  product   Product  @relation(fields: [productId], references: [id])
-}
-
-model Document {
-  id        String   @id @default(cuid())
-  name      String
-  url       String
-  type      String
-  productId String
-  createdAt DateTime @default(now())
-  product   Product  @relation(fields: [productId], references: [id])
-}
-
-model Sale {
-  id            String        @id @default(cuid())
-  totalAmount   Float
-  paymentStatus PaymentStatus
-  paymentMethod PaymentMethod
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  userId        String
-  createdBy     User          @relation(fields: [userId], references: [id])
-  items         SaleItem[]
-}
-
-model SaleItem {
-  id        String  @id @default(cuid())
-  quantity  Int
-  price     Float
-  saleId    String
-  productId String
-  product   Product @relation(fields: [productId], references: [id])
-  sale      Sale    @relation(fields: [saleId], references: [id])
-}
-
-model BusinessProfile {
-  id           String   @id @default(cuid())
-  businessName String
-  industry     String?
-  address      String?
-  city         String?
-  state        String?
-  zipCode      String?
-  country      String?
-  phone        String?
-  website      String?
-  taxId        String?
-  logo         String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  userId       String   @unique
-  user         User     @relation(fields: [userId], references: [id])
-}
-
-model StepData {
-  id           String     @id @default(cuid())
-  stepId       String
-  data         String
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  onboardingId String
-  onboarding   Onboarding @relation(fields: [onboardingId], references: [id], onDelete: Cascade)
-
-  @@unique([onboardingId, stepId])
-}
-
-model Onboarding {
-  id             String     @id @default(cuid())
-  completed      Boolean    @default(false)
-  completedSteps String[]   @default([])
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
-  completedAt    DateTime?
-  userId         String     @unique
-  user           User       @relation(fields: [userId], references: [id])
-  stepData       StepData[]
-}
-
-model PaymentConfig {
-  id                    String   @id @default(cuid())
-  acceptCash            Boolean  @default(true)
-  acceptCardPayments    Boolean  @default(false)
-  acceptInvoicePayments Boolean  @default(false)
-  stripeEnabled         Boolean  @default(false)
-  stripeAccountId       String?
-  stripeConnected       Boolean  @default(false)
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-  userId                String   @unique
-  user                  User     @relation(fields: [userId], references: [id])
-}
-
-model Account {
-  id                String  @id @default(cuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String?
-  access_token      String?
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String?
-  session_state     String?
-  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
-}
-
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
-
-  @@unique([identifier, token])
-}
-
-model InventoryChange {
-  id        String   @id @default(cuid())
-  type      String
-  quantity  Int
-  productId String
-  userId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  product   Product  @relation(fields: [productId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
-}
-
+// Improved enums with consistent values
 enum Role {
   USER
   ADMIN
@@ -216,16 +25,351 @@ enum Permission {
   VIEW_ANALYTICS
 }
 
-enum PaymentStatus {
-  PENDING
-  COMPLETED
-  FAILED
-  REFUNDED
-}
-
+// Added payment enums for consistency and validation
 enum PaymentMethod {
   CASH
   CREDIT_CARD
   DEBIT_CARD
+  PAYPAL
   STRIPE
+  INVOICE
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+  REFUNDED
+  FAILED
+}
+
+model User {
+  id              String    @id @default(cuid())
+  name            String?
+  email           String?   @unique
+  emailVerified   DateTime?
+  image           String?
+  hashedPassword  String?
+  role            Role      @default(USER)
+  permissions     String[]  @default([])
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  accounts        Account[]
+  sessions        Session[]
+  inventories     Inventory[]
+  businessProfile BusinessProfile?
+  settings        UserSettings?
+  products        Product[]
+  sales           Sale[]
+  notificationPreferences NotificationPreference?
+  paymentConfig   PaymentConfig?
+  inventoryChanges InventoryChange[]
+  businessId      String?
+  employer        User?    @relation("BusinessEmployees", fields: [businessId], references: [id])
+  employees       User[]   @relation("BusinessEmployees")
+  onboarding      Onboarding?
+
+  @@map("users")
+  @@index([email])
+  @@index([businessId])
+}
+
+model Onboarding {
+  id             String     @id @default(cuid())
+  userId         String     @unique
+  user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  completed      Boolean    @default(false)
+  completedSteps String[]   @default([])
+  currentStep    String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  stepData       StepData[]
+
+  @@map("onboarding")
+  @@index([userId, completed])
+}
+
+model StepData {
+  id          String     @id @default(cuid())
+  onboardingId String
+  onboarding  Onboarding @relation(fields: [onboardingId], references: [id], onDelete: Cascade)
+  stepId      String
+  data        String     @db.Text
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@unique([onboardingId, stepId])
+  @@map("step_data")
+  @@index([onboardingId])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+  @@index([userId])
+  @@index([expires])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+  @@index([expires])
+}
+
+model BusinessProfile {
+  id          String   @id @default(cuid())
+  businessName String
+  industry    String?
+  address     String?
+  city        String?
+  state       String?
+  zipCode     String?
+  country     String?
+  phone       String?
+  website     String?
+  taxId       String?
+  logo        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String   @unique
+
+  @@map("business_profiles")
+  @@index([userId])
+  @@index([businessName])
+}
+
+model UserSettings {
+  id          String   @id @default(cuid())
+  language    String   @default("en")
+  darkMode    Boolean  @default(false)
+  emailNotifications Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String   @unique
+
+  @@map("user_settings")
+  @@index([userId])
+}
+
+model Tag {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  color       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  inventories Inventory[]
+
+  @@map("tags")
+  @@index([name])
+}
+
+model Inventory {
+  id          String   @id @default(cuid())
+  name        String
+  type        String?
+  location    String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  tags        Tag[]
+
+  products    Product[]
+
+  @@map("inventories")
+  @@index([userId, isActive])
+  @@index([name])
+}
+
+model Product {
+  id            String   @id @default(cuid())
+  sku           String?
+  name          String
+  description   String?
+  category      String?
+  unitCost      Float?
+  sellingPrice  Float?
+  stockQuantity Int      @default(0)
+  location      String?
+  size          String?
+  color         String?
+  imagesJson    Json?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String
+  inventory     Inventory? @relation(fields: [inventoryId], references: [id])
+  inventoryId   String?
+  saleItems     SaleItem[]
+  images        Image[]
+  documents     Document[]
+  inventoryChanges InventoryChange[]
+
+  @@map("products")
+  @@index([userId, isActive])
+  @@index([name])
+  @@index([category])
+  @@index([sku])
+}
+
+model NotificationPreference {
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emailNotifications Boolean  @default(true)
+  smsNotifications   Boolean  @default(false)
+  pushNotifications  Boolean  @default(false)
+  orderUpdates       Boolean  @default(true)
+  inventoryAlerts    Boolean  @default(true)
+  paymentNotifications Boolean @default(true)
+  marketingEmails    Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@map("notification_preferences")
+  @@index([userId])
+}
+
+model Sale {
+  id            String        @id @default(cuid())
+  date          DateTime      @default(now())
+  totalAmount   Float
+  paymentMethod String        // Keeping as String for backward compatibility but adding validation
+  paymentStatus String        // Keeping as String for backward compatibility but adding validation
+  items         SaleItem[]
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@map("sales")
+  @@index([userId, date])
+  @@index([date])
+  @@index([paymentStatus])
+  @@index([paymentMethod])
+}
+
+model SaleItem {
+  id          String   @id @default(cuid())
+  quantity    Int
+  price       Float
+  saleId      String
+  sale        Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id])
+  productName String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("sale_items")
+  @@index([saleId])
+  @@index([productId])
+}
+
+model PaymentConfig {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  acceptsCreditCards    Boolean  @default(false)
+  acceptsPayPal         Boolean  @default(false)
+  acceptsCash           Boolean  @default(true)
+  acceptsInvoice        Boolean  @default(false)
+  stripeConnected       Boolean  @default(false)
+  paypalConnected       Boolean  @default(false)
+  defaultPaymentMethod  String   @default("CASH")
+  stripeAccountId       String?
+  paypalAccountId       String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@map("payment_configs")
+  @@index([userId])
+}
+
+model Image {
+  id        String   @id @default(cuid())
+  url       String
+  alt       String?
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("images")
+  @@index([productId])
+}
+
+model Document {
+  id        String   @id @default(cuid())
+  url       String
+  name      String
+  type      String
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("documents")
+  @@index([productId])
+}
+
+model InventoryChange {
+  id          String   @id @default(cuid())
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id])
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  type        String   // "add", "remove", "adjust"
+  quantity    Int
+  reason      String?
+  reference   String?  // e.g., "Sale #123", "Order #456"
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("inventory_changes")
+  @@index([productId, createdAt])
+  @@index([userId, createdAt])
+  @@index([type])
 }

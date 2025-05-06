@@ -26,10 +26,6 @@ export default function CompletionStep({
         <h1 className="text-3xl font-bold mb-2">
           Almost Done!
         </h1>
-        
-        <p className="text-muted-foreground mb-6">
-          You've completed all the setup steps. Click the button below to finalize your setup and go to your dashboard.
-        </p>
       </div>
       
       {error && (

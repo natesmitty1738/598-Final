@@ -1,114 +1,76 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../auth/[...nextauth]/auth-options';
-import { PrismaClient } from '@prisma/client';
+import prisma from '@/lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
-const prisma = new PrismaClient();
-
-// Get the business profile for the authenticated user
+// Get business profile for the current user
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     
-    if (!session || !session.user) {
+    if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    const userEmail = session.user.email;
-    
-    if (!userEmail) {
-      return NextResponse.json({ error: 'User email not found in session' }, { status: 400 });
-    }
-    
-    // Find user by email
-    const user = await prisma.user.findUnique({
-      where: { email: userEmail },
-      include: { businessProfile: true }
+    const businessProfile = await prisma.businessProfile.findUnique({
+      where: { userId: session.user.id },
     });
     
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    if (!businessProfile) {
+      // Return empty object if no business profile found
+      return NextResponse.json({}, { status: 200 });
     }
-    
-    if (!user.businessProfile) {
-      return NextResponse.json({ error: 'Business profile not found' }, { status: 404 });
-    }
-    
-    return NextResponse.json(user.businessProfile);
-  } catch (error) {
-    console.error('Error fetching business profile:', error);
-    return NextResponse.json({ error: 'Failed to fetch business profile' }, { status: 500 });
-  }
-}
-
-// Create or update a business profile
-export async function POST(request: Request) {
-  try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session || !session.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    
-    const userEmail = session.user.email;
-    
-    if (!userEmail) {
-      return NextResponse.json({ error: 'User email not found in session' }, { status: 400 });
-    }
-    
-    const data = await request.json();
-    const { businessName, industry, address, city, state, zipCode, country, phone, website, taxId, logo } = data;
-    
-    if (!businessName) {
-      return NextResponse.json({ error: 'Business name is required' }, { status: 400 });
-    }
-    
-    // Find user by email
-    const user = await prisma.user.findUnique({
-      where: { email: userEmail }
-    });
-    
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-    
-    // Create or update business profile
-    const businessProfile = await prisma.businessProfile.upsert({
-      where: {
-        userId: user.id
-      },
-      update: {
-        businessName,
-        industry,
-        address,
-        city,
-        state,
-        zipCode,
-        country,
-        phone,
-        website,
-        taxId,
-        logo
-      },
-      create: {
-        businessName,
-        industry,
-        address,
-        city,
-        state,
-        zipCode,
-        country,
-        phone,
-        website,
-        taxId,
-        logo,
-        userId: user.id
-      }
-    });
     
     return NextResponse.json(businessProfile);
   } catch (error) {
-    console.error('Error creating/updating business profile:', error);
-    return NextResponse.json({ error: 'Failed to create/update business profile' }, { status: 500 });
+    console.error('Error fetching business profile:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch business profile' },
+      { status: 500 }
+    );
+  }
+}
+
+// Update business profile for the current user
+export async function PUT(request: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
+    const data = await request.json();
+    
+    // Check if business profile exists
+    const existingProfile = await prisma.businessProfile.findUnique({
+      where: { userId: session.user.id },
+    });
+    
+    let businessProfile;
+    
+    if (existingProfile) {
+      // Update existing profile
+      businessProfile = await prisma.businessProfile.update({
+        where: { userId: session.user.id },
+        data,
+      });
+    } else {
+      // Create new profile
+      businessProfile = await prisma.businessProfile.create({
+        data: {
+          ...data,
+          userId: session.user.id,
+        },
+      });
+    }
+    
+    return NextResponse.json(businessProfile);
+  } catch (error) {
+    console.error('Error updating business profile:', error);
+    return NextResponse.json(
+      { error: 'Failed to update business profile' },
+      { status: 500 }
+    );
   }
 } 

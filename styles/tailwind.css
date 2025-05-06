@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+  
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+  
+  .rotate-x-12 {
+    transform: rotateX(12deg);
+  }
+  
+  .rotate-y-24 {
+    transform: rotateY(24deg);
+  }
+}
+
+.gradient-text {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-gradient-start via-brand-gradient-mid to-brand-gradient-end;
+} 

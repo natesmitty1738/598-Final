@@ -78,7 +78,10 @@ export default function PaymentSetupStep({ initialData, onComplete }: PaymentSet
       
       if (response.ok) {
         const savedConfig = await response.json();
-        onComplete(savedConfig);
+        // Pass the complete data to the onComplete handler for the onboarding process
+        onComplete({
+          paymentMethods: paymentConfig
+        });
       } else {
         const errorData = await response.json();
         setError(errorData.error || 'Failed to save payment configuration');

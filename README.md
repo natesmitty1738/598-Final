@@ -365,6 +365,32 @@ components/
 
 > **Note:** The previous component structure that used `app/components` has been completely removed in favor of this cleaner approach. All components now reside in the root `/components` directory organized by function.
 
+## Data Visualization
+
+MerchX uses Chart.js for data visualization through custom chart components:
+
+### CategoryChart Component
+
+The `CategoryChart` component handles data visualization with these key features:
+
+- **Large Number Formatting**: Values are formatted with K (thousands), M (millions), and B (billions) suffixes
+  ```javascript
+  // Examples:
+  // 1,500 -> 1.5K
+  // 1,500,000 -> 1.5M
+  // 1,500,000,000 -> 1.5B
+  ```
+
+- **Currency Formatting**: Automatically adds $ symbol to values when valueLabel includes '$'
+
+- **Automatic Theming**: Charts adapt to light/dark mode using predefined color schemes
+
+- **Responsive Sizing**: Charts automatically adjust based on container width and specified height
+
+- **Multiple Chart Types**: Supports both bar charts and pie charts with appropriate configurations
+
+The dashboard demo can be accessed via the Analytics page after logging in.
+
 ## Directory Paths
 
 - `@/components/ui/*`: UI components
@@ -374,6 +400,46 @@ components/
 - `@/components/shared/*`: Shared utility components
 - `@/components/providers/*`: Context providers
 
+## Data Upload and Processing
+
+The application supports uploading business data via CSV files:
+
+### Sales History Import
+
+Businesses can upload their sales history using CSV files with the following columns:
+- `date` - The date of the sale (YYYY-MM-DD format)
+- `productId` - Optional ID or SKU of the product
+- `productName` - Name of the product
+- `quantity` - Number of units sold
+- `unitPrice` - Price per unit
+- `totalAmount` - Optional total amount (will be calculated if not provided)
+
+### Inventory Items Import
+
+Businesses can upload their inventory items using CSV files with the following columns:
+- `sku` - The SKU or unique identifier for the product
+- `name` - Product name (required)
+- `description` - Optional product description
+- `category` - Optional product category
+- `unitCost` - Optional cost per unit
+- `sellingPrice` - Optional selling price
+- `stockQuantity` - Optional current stock quantity
+- `location` - Optional storage location
+- `size` - Optional product size
+- `color` - Optional product color
+
+### Dynamic Pricing
+
+Uploaded sales history is analyzed to provide dynamic pricing suggestions based on:
+- Historical price elasticity
+- Inventory levels
+- Sales velocity
+- Market trends
+
+The system calculates optimal pricing that maximizes revenue while considering inventory constraints.
+
 ## Getting Started
+
+projected earning line-chart, peak selling hours bar chart, price suggestions bar chart (compare current price with suggested price) [second graph: projected revenue with price changes line chart that compares current revenue projection using current prices vs renenue projection using profitable and up recommended prices], optimal products (bar chart with products that have best score based on margin & selling volume) 
 
 ...

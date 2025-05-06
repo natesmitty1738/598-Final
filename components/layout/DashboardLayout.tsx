@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
+import Header from '@/components/layout/Header';
 import { cn } from '@/lib/utils';
 
 interface DashboardLayoutProps {
-  children: React.ReactNode;
-  className?: string;
+  children: ReactNode;
 }
 
 interface DashboardSectionProps {
@@ -25,10 +25,13 @@ interface DashboardHeaderProps {
   actions?: React.ReactNode;
 }
 
-export function DashboardLayout({ children, className }: DashboardLayoutProps) {
+export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
-    <div className={cn("flex-1 w-full", className)}>
-      {children}
+    <div className="flex flex-col min-h-screen">
+      <Header />
+      <div className="flex-1 pt-16">
+        {children}
+      </div>
     </div>
   );
 }

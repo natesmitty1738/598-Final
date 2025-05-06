@@ -1,0 +1,11 @@
+sku,name,description,category,unitCost,sellingPrice,stockQuantity,location,size,color
+SKU001,Cotton T-Shirt (Black),Basic cotton t-shirt with round neck,Apparel,9.75,22.99,45,Warehouse A,M,Black
+SKU002,Premium Hoodie (Gray),Heavy cotton blend hoodie with front pocket,Apparel,22.50,42.99,28,Warehouse A,L,Gray
+SKU003,Denim Jeans (Blue),Classic straight cut denim jeans,Apparel,32.25,69.99,15,Warehouse B,32,Blue
+SKU004,Canvas Tote Bag,Eco-friendly canvas tote with inner pocket,Accessories,8.50,19.99,60,Warehouse A,One Size,Natural
+SKU005,Baseball Cap,Adjustable cotton baseball cap with embroidered logo,Accessories,7.25,18.99,35,Warehouse A,One Size,Navy
+SKU006,Leather Wallet,Genuine leather bifold wallet,Accessories,15.75,34.99,22,Warehouse B,One Size,Brown
+SKU007,Graphic T-Shirt,Cotton t-shirt with printed graphic design,Apparel,11.25,24.99,38,Warehouse A,L,White
+SKU008,Athletic Shorts,Lightweight polyester shorts for sports,Apparel,12.50,29.99,40,Warehouse B,M,Black
+SKU009,Wool Beanie,Warm knitted wool beanie for winter,Accessories,8.75,21.99,50,Warehouse A,One Size,Gray
+SKU010,Sunglasses,UV-protected classic frame sunglasses,Accessories,14.50,39.99,25,Warehouse B,One Size,Black 

@@ -18,6 +18,7 @@ export default function CompletionStep({ formData, onComplete, updateFormData, u
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
   
   // Get business information from previous steps
   useEffect(() => {
@@ -96,7 +97,7 @@ export default function CompletionStep({ formData, onComplete, updateFormData, u
         });
         
         if (response.ok) {
-          console.log('Successfully marked onboarding as complete');
+          setIsCompleted(true);
         } else {
           console.error('Failed to mark onboarding as complete');
         }
@@ -116,23 +117,21 @@ export default function CompletionStep({ formData, onComplete, updateFormData, u
       onComplete();
       
       // Use multiple navigation methods to ensure redirect works
-      console.log('Redirecting to dashboard...');
       
       // Method 1: Use Next.js router
-      router.push('/dashboard');
+      router.push('/');
       
       // Method 2: Use window.location as a fallback
       setTimeout(() => {
-        if (typeof window !== 'undefined') {
-          window.location.href = '/dashboard';
-        }
+        // Use the passed onComplete callback to tell the parent component we're done
+        onComplete({});
       }, 300);
     } catch (error) {
       console.error('Navigation error:', error);
       
       // Ultimate fallback - direct location change
       if (typeof window !== 'undefined') {
-        window.location.href = '/dashboard';
+        window.location.href = '/';
       }
     }
   };
@@ -180,7 +179,7 @@ export default function CompletionStep({ formData, onComplete, updateFormData, u
       {/* Direct link fallback */}
       <div className="mt-4 text-sm text-muted-foreground">
         <a 
-          href="/dashboard" 
+          href="/" 
           className="text-blue-600 hover:text-blue-800 hover:underline"
           onClick={(e) => {
             e.preventDefault();

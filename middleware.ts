@@ -28,18 +28,29 @@ const onboardingExemptPaths = [
 
 // Permission-restricted routes
 const restrictedRoutes: Record<string, string[]> = {
-  '/inventory': ['MANAGE_INVENTORY'],
+  '/inventory-manager': ['MANAGE_INVENTORY'],
   '/api/inventory': ['MANAGE_INVENTORY'],
-  '/sales': ['MANAGE_SALES'],
+  '/sales-manager': ['MANAGE_SALES'],
   '/api/sales': ['MANAGE_SALES'],
   '/reports': ['VIEW_REPORTS'],
   '/api/reports': ['VIEW_REPORTS'],
   '/analytics': ['VIEW_ANALYTICS'],
   '/api/analytics': ['VIEW_ANALYTICS'],
   '/api/employees': ['MANAGE_EMPLOYEES'],
-  '/settings': ['MANAGE_SETTINGS'],
+  '/profile': ['MANAGE_SETTINGS'],
   '/api/settings': ['MANAGE_SETTINGS'],
 }
+
+// Define which route requires which permission
+const routePermissionMapping: Record<string, string[]> = {
+  '/dashboard': ['VIEW_DASHBOARD'],
+  '/inventory-manager': ['VIEW_INVENTORY', 'MANAGE_INVENTORY'],
+  '/sales-manager': ['VIEW_SALES', 'PROCESS_SALES'],
+  '/reports': ['VIEW_REPORTS'],
+  '/analytics': ['VIEW_ANALYTICS'],
+  '/profile': ['MANAGE_SETTINGS'],
+  '/api/settings': ['MANAGE_SETTINGS'],
+};
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -116,11 +127,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next() 
   }
 
-  if (role === 'SALES_REP' && pathname.includes('/sales')) {
+  if (role === 'SALES_REP' && pathname.includes('/sales-manager')) {
     return NextResponse.next() 
   }
 
-  if (role === 'INVENTORY_MANAGER' && pathname.includes('/inventory')) {
+  if (role === 'INVENTORY_MANAGER' && pathname.includes('/inventory-manager')) {
     return NextResponse.next() 
   }
 
@@ -159,7 +170,6 @@ async function checkOnboardingStatus(userId: string): Promise<boolean> {
         const allStepsCompleted = requiredSteps.every(step => data.completedSteps?.includes(step))
         
         if (!allStepsCompleted) {
-          console.log('Middleware detected completed flag is true but not all steps are done')
           return false
         }
         

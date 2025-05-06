@@ -1,0 +1,41 @@
+id,sku,name,description,unitCost,sellingPrice,stockQuantity,category,supplier,location,size,color,material,imageUrl,lastRestockDate
+P001,WH-BT100,Premium Bluetooth Headphones,"High-quality over-ear noise cancelling headphones with 30-hour battery life",78.50,129.99,45,Electronics,AudioTech,Warehouse A,One Size,Black,Plastic/Metal,https://example.com/images/headphones.jpg,2023-11-15
+P002,WH-MS200,Wireless Ergonomic Mouse,"Precision wireless mouse with ergonomic design and 6-month battery life",22.75,45.99,78,Electronics,TechGear,Warehouse B,Standard,Silver,Plastic,https://example.com/images/mouse.jpg,2023-11-12
+P003,WH-KB300,Mechanical Gaming Keyboard,"Backlit mechanical keyboard with programmable keys and wrist rest",52.40,89.99,35,Electronics,GamerGear,Warehouse A,Full,RGB,Aluminum/Plastic,https://example.com/images/keyboard.jpg,2023-11-10
+P004,WH-CB400,USB-C Braided Cable,"Premium 6ft braided USB-C to USB-A charging and data cable",5.60,12.99,120,Electronics,CablePro,Warehouse C,6ft,Black,Nylon,https://example.com/images/cable.jpg,2023-11-20
+P005,WH-PB500,20000mAh Power Bank,"Fast-charging power bank with 20000mAh capacity and dual USB ports",28.30,49.99,62,Electronics,PowerPlus,Warehouse B,Compact,White,Aluminum,https://example.com/images/powerbank.jpg,2023-11-18
+P006,WH-SP600,Bluetooth Smart Speaker,"360° sound smart speaker with voice assistant compatibility",45.25,79.99,40,Electronics,SoundWave,Warehouse A,Medium,Gray,Fabric/Plastic,https://example.com/images/speaker.jpg,2023-11-22
+P007,WH-WC700,Wireless Charger Pad,"10W fast wireless charging pad compatible with all Qi devices",16.50,29.99,85,Electronics,ChargeTech,Warehouse C,Standard,Black,Plastic,https://example.com/images/charger.jpg,2023-11-14
+P008,WH-EB800,Fitness Tracker,"Waterproof fitness tracker with heart rate monitor and sleep tracking",35.75,64.99,55,Electronics,FitGear,Warehouse B,One Size,Blue,Silicone/Plastic,https://example.com/images/tracker.jpg,2023-11-11
+P009,WH-TB900,10-inch Tablet,"10-inch HD display tablet with quad-core processor and 64GB storage",125.00,219.99,28,Electronics,TabTech,Warehouse A,10-inch,Silver,Glass/Aluminum,https://example.com/images/tablet.jpg,2023-11-09
+P010,WH-CC100,USB Card Reader,"Multi-format memory card reader with USB 3.0 interface",8.25,16.99,95,Electronics,DataPro,Warehouse C,Pocket,Black,Plastic,https://example.com/images/cardreader.jpg,2023-11-21
+P011,WH-TS200,T-Shirt Basic,"100% cotton basic t-shirt with crew neck",7.50,19.99,120,Clothing,FashionBasics,Warehouse D,M,Blue,Cotton,https://example.com/images/tshirt.jpg,2023-11-16
+P012,WH-TS201,T-Shirt Basic,"100% cotton basic t-shirt with crew neck",7.50,19.99,85,Clothing,FashionBasics,Warehouse D,L,Black,Cotton,https://example.com/images/tshirt-black.jpg,2023-11-16
+P013,WH-TS202,T-Shirt Basic,"100% cotton basic t-shirt with crew neck",7.50,19.99,95,Clothing,FashionBasics,Warehouse D,XL,White,Cotton,https://example.com/images/tshirt-white.jpg,2023-11-16
+P014,WH-HH300,Hoodie,"Heavyweight cotton blend hoodie with front pocket",18.25,39.99,68,Clothing,UrbanStyle,Warehouse D,L,Gray,Cotton/Polyester,https://example.com/images/hoodie.jpg,2023-11-17
+P015,WH-JN400,Jeans Regular,"Classic five-pocket regular fit jeans",22.50,49.99,75,Clothing,DenimCo,Warehouse D,32,Blue,Denim,https://example.com/images/jeans.jpg,2023-11-19
+P016,WH-JN401,Jeans Slim,"Five-pocket slim fit jeans",24.00,52.99,65,Clothing,DenimCo,Warehouse D,30,Dark Blue,Denim,https://example.com/images/jeans-slim.jpg,2023-11-19
+P017,WH-SK500,Socks 3-Pack,"Set of 3 pairs of crew socks",5.25,12.99,130,Clothing,SockStop,Warehouse D,One Size,Mixed,Cotton/Elastane,https://example.com/images/socks.jpg,2023-11-23
+P018,WH-CA600,Baseball Cap,"Adjustable cotton baseball cap with embroidered logo",8.75,18.99,95,Clothing,HeadGear,Warehouse D,One Size,Navy,Cotton,https://example.com/images/cap.jpg,2023-11-15
+P019,WH-JK700,Lightweight Jacket,"Water-resistant lightweight jacket with hood",35.00,69.99,45,Clothing,OutwearPro,Warehouse D,M,Green,Polyester,https://example.com/images/jacket.jpg,2023-11-10
+P020,WH-SW800,Sweatpants,"Comfortable cotton blend sweatpants with elastic waist",16.50,34.99,80,Clothing,ComfortWear,Warehouse D,M,Gray,Cotton/Polyester,https://example.com/images/sweatpants.jpg,2023-11-18
+P021,WH-KP100,Kitchen Pot Set,"Set of 3 non-stick cooking pots with glass lids",42.75,89.99,40,Home,KitchenPro,Warehouse E,Standard,Black,Aluminum,https://example.com/images/potset.jpg,2023-11-14
+P022,WH-KN200,Kitchen Knife Set,"Professional 5-piece kitchen knife set with block",56.25,119.99,35,Home,CutleryMasters,Warehouse E,Standard,Silver,Stainless Steel,https://example.com/images/knifeset.jpg,2023-11-13
+P023,WH-TD300,Bath Towel Set,"Set of 4 soft cotton bath towels",18.50,39.99,60,Home,HomeLinen,Warehouse E,Large,White,Cotton,https://example.com/images/towels.jpg,2023-11-20
+P024,WH-BP400,Bed Pillow,"Memory foam bed pillow with cooling cover",21.00,44.99,75,Home,SleepWell,Warehouse E,Queen,White,Memory Foam,https://example.com/images/pillow.jpg,2023-11-22
+P025,WH-BL500,Bed Linen Set,"Complete bed sheet set with pillowcases",32.50,64.99,50,Home,HomeLinen,Warehouse E,Queen,Blue,Cotton,https://example.com/images/bedlinen.jpg,2023-11-15
+P026,WH-CS600,Coffee Set,"12-piece ceramic coffee mug and saucer set",28.75,59.99,40,Home,TableWare,Warehouse E,Standard,White,Ceramic,https://example.com/images/coffeeset.jpg,2023-11-17
+P027,WH-CP700,Cutting Board,"Bamboo cutting board with juice groove",12.25,24.99,85,Home,KitchenPro,Warehouse E,Large,Natural,Bamboo,https://example.com/images/cuttingboard.jpg,2023-11-21
+P028,WH-VF800,Vacuum Flask,"Stainless steel vacuum insulated water bottle",14.50,29.99,95,Home,ThermoPro,Warehouse E,20oz,Silver,Stainless Steel,https://example.com/images/flask.jpg,2023-11-19
+P029,WH-RL900,Reading Lamp,"Adjustable LED reading lamp with USB charging port",19.75,39.99,70,Home,LightMaster,Warehouse E,Standard,Black,Metal/Plastic,https://example.com/images/lamp.jpg,2023-11-12
+P030,WH-DB100,Decorative Basket,"Handwoven decorative storage basket set of 3",24.00,49.99,55,Home,HomeDecor,Warehouse E,Assorted,Natural,Seagrass,https://example.com/images/basket.jpg,2023-11-14
+P031,WH-MB100,Messenger Bag,"Canvas messenger bag with padded laptop compartment",28.50,59.99,65,Accessories,BagWorks,Warehouse F,15-inch,Army Green,Canvas,https://example.com/images/messengerbag.jpg,2023-11-16
+P032,WH-BP200,Backpack,"Water-resistant backpack with multiple compartments",32.25,64.99,70,Accessories,BagWorks,Warehouse F,Standard,Black,Polyester,https://example.com/images/backpack.jpg,2023-11-18
+P033,WH-SG300,Sunglasses,"UV protection polarized sunglasses",16.75,39.99,85,Accessories,ShadeStyle,Warehouse F,One Size,Black,Plastic/Metal,https://example.com/images/sunglasses.jpg,2023-11-23
+P034,WH-WL400,Leather Wallet,"Genuine leather bifold wallet with RFID protection",18.50,44.99,90,Accessories,LeatherGoods,Warehouse F,Standard,Brown,Leather,https://example.com/images/wallet.jpg,2023-11-17
+P035,WH-SC500,Smartphone Case,"Shock-absorbing smartphone case with card holder",9.25,24.99,110,Accessories,PhoneGear,Warehouse F,iPhone 13,Black,TPU/Polycarbonate,https://example.com/images/phonecase.jpg,2023-11-21
+P036,WH-UB600,Umbrella,"Compact automatic umbrella with wind-resistant frame",12.50,27.99,75,Accessories,RainStop,Warehouse F,Compact,Navy,Polyester/Aluminum,https://example.com/images/umbrella.jpg,2023-11-19
+P037,WH-KR700,Keyring,"Multi-tool keyring with bottle opener and LED light",6.75,14.99,120,Accessories,GadgetZone,Warehouse F,Standard,Silver,Stainless Steel,https://example.com/images/keyring.jpg,2023-11-22
+P038,WH-WB800,Water Bottle,"BPA-free sports water bottle with measurement markings",8.25,18.99,95,Accessories,HydrationPro,Warehouse F,24oz,Blue,Tritan Plastic,https://example.com/images/waterbottle.jpg,2023-11-15
+P039,WH-TT900,Travel Toiletry Bag,"Hanging toiletry bag with multiple compartments",14.50,32.99,80,Accessories,TravelGear,Warehouse F,Standard,Gray,Polyester,https://example.com/images/toiletry.jpg,2023-11-20
+P040,WH-LT100,Laptop Stand,"Adjustable aluminum laptop stand with cooling ventilation",19.25,39.99,65,Accessories,DeskPro,Warehouse F,Universal,Silver,Aluminum,https://example.com/images/laptopstand.jpg,2023-11-13 

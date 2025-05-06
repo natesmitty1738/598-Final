@@ -69,28 +69,16 @@ export async function POST(request: Request) {
       documents,
     } = data;
 
-    console.log("Creating product:", { sku, name, unitCost, sellingPrice, stockQuantity });
-
-    // Validate required fields
-    if (!sku || !name) {
-      return NextResponse.json({ error: 'SKU and name are required' }, { status: 400 });
-    }
-
-    // Ensure numeric values are properly parsed
-    const parsedUnitCost = typeof unitCost === 'string' ? parseFloat(unitCost) : (unitCost || 0);
-    const parsedSellingPrice = typeof sellingPrice === 'string' ? parseFloat(sellingPrice) : (sellingPrice || 0);
-    const parsedStockQuantity = typeof stockQuantity === 'string' ? parseInt(stockQuantity.toString()) : (stockQuantity || 0);
-
-    // Create the product
+    // Create a new product
     try {
       const product = await prisma.product.create({
         data: {
           sku,
           name,
           description: description || "",
-          unitCost: parsedUnitCost,
-          sellingPrice: parsedSellingPrice,
-          stockQuantity: parsedStockQuantity,
+          unitCost: typeof unitCost === 'string' ? parseFloat(unitCost) : (unitCost || 0),
+          sellingPrice: typeof sellingPrice === 'string' ? parseFloat(sellingPrice) : (sellingPrice || 0),
+          stockQuantity: typeof stockQuantity === 'string' ? parseInt(stockQuantity.toString()) : (stockQuantity || 0),
           location: location || "",
           category: category || "",
           size: size || "",
@@ -120,7 +108,6 @@ export async function POST(request: Request) {
         },
       });
 
-      console.log("Product created successfully:", product.id);
       return NextResponse.json(product);
     } catch (dbError) {
       console.error("Database error creating product:", dbError);

@@ -446,9 +446,9 @@ export default function ProductManagementForm({
             <div className="text-center p-8 border rounded-lg bg-muted/30">
               <Package className="h-10 w-10 mx-auto mb-2 text-muted-foreground" />
               <p className="text-muted-foreground">No products added yet</p>
-              <p className="text-sm text-muted-foreground mt-1">
+              {/* <p className="text-sm text-muted-foreground mt-1">
                 Add some products to get started with inventory management
-              </p>
+              </p> */}
             </div>
           )}
         </div>

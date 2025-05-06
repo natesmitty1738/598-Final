@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut, useSession } from 'next-auth/react'
+import { useState, useEffect } from 'react'
 import {
   LayoutDashboard,
   Package,
@@ -12,27 +13,69 @@ import {
   User,
   Wand2,
   Users,
+  Home,
+  PieChart,
+  Upload,
+  Database
 } from 'lucide-react'
 
-const navigation = [
+const navigationItems = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Inventory', href: '/inventory', icon: Package },
   { name: 'Sales', href: '/sales', icon: ShoppingCart },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
+  { name: 'Data Import', href: '/data-import', icon: Database },
   { name: 'Reports', href: '/reports', icon: FileText },
-  { name: 'Profile', href: '/profile', icon: User },
-  { name: 'Settings', href: '/settings', icon: Settings },
-  { name: 'Setup Wizard', href: '/onboarding', icon: Wand2 },
+  { name: 'Settings', href: '/profile', icon: Settings },
 ]
 
 export default function Sidebar() {
   const pathname = usePathname()
   const { data: session } = useSession()
+  const [navigation, setNavigation] = useState(navigationItems)
+  const [onboardingComplete, setOnboardingComplete] = useState(false)
+
+  // Check if onboarding is complete
+  useEffect(() => {
+    const checkOnboardingStatus = async () => {
+      try {
+        const response = await fetch('/api/onboarding/status')
+        if (response.ok) {
+          const { complete } = await response.json()
+          setOnboardingComplete(complete)
+          
+          // Add or remove Setup Wizard based on onboarding status
+          if (!complete) {
+            // Add Setup Wizard if not in the navigation items
+            if (!navigation.some(item => item.name === 'Setup Wizard')) {
+              setNavigation([...navigationItems, { name: 'Setup Wizard', href: '/onboarding', icon: Wand2 }])
+            }
+          } else {
+            // Remove Setup Wizard if in the navigation items
+            setNavigation(navigationItems)
+          }
+        }
+      } catch (error) {
+        console.error('Error checking onboarding status:', error)
+      }
+    }
+    
+    if (session?.user) {
+      checkOnboardingStatus()
+    }
+  }, [session, navigation])
 
   // If this is an admin user, show employee management
-  if (session?.user?.role === 'ADMIN') {
-    navigation.push({ name: 'Employees', href: '/employees', icon: Users })
-  }
+  useEffect(() => {
+    if (session?.user?.role === 'ADMIN') {
+      setNavigation(prev => {
+        if (!prev.some(item => item.name === 'Employees')) {
+          return [...prev, { name: 'Employees', href: '/employees', icon: Users }]
+        }
+        return prev
+      })
+    }
+  }, [session])
 
   return (
     <div className="flex w-64 flex-col bg-white shadow-lg">

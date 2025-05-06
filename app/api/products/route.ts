@@ -17,18 +17,37 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
+    const sortKey = searchParams.get("sortKey") || "createdAt";
+    const sortDir = searchParams.get("sortDir") || "desc";
+
+    // Build the orderBy object dynamically based on the sortKey
+    const orderBy: any = {};
+    
+    // Only set orderBy if sortKey is not empty
+    if (sortKey && sortKey.trim() !== "") {
+      // Handle special cases for fields not directly in the database schema
+      if (sortKey === "price") {
+        // Map 'price' to 'sellingPrice' which exists in the database
+        orderBy["sellingPrice"] = sortDir;
+        console.log("Products API - Special case: Mapping price sorting to sellingPrice:", orderBy);
+      } else {
+        // Standard field sorting
+        orderBy[sortKey] = sortDir;
+        console.log("Products API - Standard sorting by:", orderBy);
+      }
+    } else {
+      // Default sort
+      orderBy["createdAt"] = "desc"; 
+      console.log("Products API - Default sorting by createdAt desc");
+    }
+
+    console.log("Products API - Final orderBy:", orderBy);
 
     const products = await prisma.product.findMany({
       where: {
         userId: session.user.id,
       },
-      include: {
-        images: true,
-        documents: true,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy,
       skip: (page - 1) * limit,
       take: limit,
     });
@@ -105,36 +124,33 @@ export async function POST(req: Request) {
     }
 
     try {
+      // Prepare images as JSON
+      const imagesData = images.map((url: string) => ({
+        url,
+        alt: name
+      }));
+
+      // Prepare documents as JSON
+      const documentsData = documents.map((url: string) => ({
+        url,
+        name: `Document for ${name}`,
+        type: 'document'
+      }));
+
       const product = await prisma.product.create({
         data: {
           sku,
           name,
           description: description || null,
-          unitCost: unitCost !== undefined ? parseFloat(String(unitCost)) : null,
-          sellingPrice: sellingPrice !== undefined ? parseFloat(String(sellingPrice)) : null,
-          stockQuantity: stockQuantity !== undefined ? parseInt(String(stockQuantity)) : null,
-          location: location || null,
-          category: category || null,
-          size: size || null,
+          unitCost: unitCost !== undefined ? parseFloat(String(unitCost)) : undefined,
+          sellingPrice: sellingPrice !== undefined ? parseFloat(String(sellingPrice)) : undefined,
+          stockQuantity: stockQuantity !== undefined ? parseInt(String(stockQuantity)) : undefined,
+          location: location || undefined,
+          category: category || undefined,
+          size: size || undefined,
           color: color || null,
           userId: session.user.id,
-          images: {
-            create: images.map((url: string) => ({
-              url,
-              alt: name
-            }))
-          },
-          documents: {
-            create: documents.map((url: string) => ({
-              url,
-              name: `Document for ${name}`,
-              type: 'document'
-            }))
-          }
-        },
-        include: {
-          images: true,
-          documents: true
+          imagesJson: images.length > 0 ? imagesData : null,
         }
       });
 
@@ -195,6 +211,16 @@ export async function PUT(req: Request) {
       }
     }
     
+    // Prepare images as JSON if provided
+    let imagesJson = undefined;
+    if (data.images && Array.isArray(data.images)) {
+      const imagesData = data.images.map((url: string) => ({
+        url,
+        alt: data.name || existingProduct.name
+      }));
+      imagesJson = imagesData.length > 0 ? imagesData : null;
+    }
+    
     try {
       const updatedProduct = await prisma.product.update({
         where: {
@@ -211,10 +237,7 @@ export async function PUT(req: Request) {
           size: data.size !== undefined ? data.size : undefined,
           color: data.color !== undefined ? data.color : undefined,
           location: data.location !== undefined ? data.location : undefined,
-        },
-        include: {
-          images: true,
-          documents: true
+          imagesJson: imagesJson
         }
       });
       
@@ -255,23 +278,17 @@ export async function DELETE(req: Request) {
     });
     
     if (!existingProduct) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Product not found or you do not have permission to delete it' }, { status: 404 });
     }
     
-    // Delete any associated images and documents
-    await prisma.$transaction([
-      prisma.image.deleteMany({
-        where: { productId: id }
-      }),
-      prisma.document.deleteMany({
-        where: { productId: id }
-      }),
-      prisma.product.delete({
-        where: { id }
-      })
-    ]);
+    // Delete the product
+    await prisma.product.delete({
+      where: {
+        id
+      },
+    });
     
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ message: 'Product deleted successfully' });
   } catch (error) {
     console.error('Error deleting product:', error);
     return NextResponse.json({ error: 'Failed to delete product' }, { status: 500 });

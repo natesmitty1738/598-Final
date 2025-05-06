@@ -162,7 +162,7 @@ export default function AccountSettingsTab() {
             required
           />
           <p className="text-sm text-muted-foreground">
-            This email will be used for notifications and login
+            This email is used for login.
           </p>
         </div>
         

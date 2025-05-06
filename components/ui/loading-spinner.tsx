@@ -8,27 +8,32 @@ interface LoadingSpinnerProps {
 
 export function LoadingSpinner({ 
   size = 'md', 
-  fullscreen = false,
-  message
+  fullscreen = false, 
+  message 
 }: LoadingSpinnerProps) {
-  // size mappings
-  const sizeClasses = {
-    sm: 'h-6 w-6',
-    md: 'h-12 w-12',
-    lg: 'h-16 w-16',
-  };
-
-  // container classes
-  const containerClasses = fullscreen 
-    ? 'flex items-center justify-center min-h-screen'
-    : 'flex items-center justify-center p-4';
-
-  return (
-    <div className={containerClasses}>
-      <div className="flex flex-col items-center gap-3">
-        <div className={`animate-spin rounded-full ${sizeClasses[size]} border-b-2 border-primary`}></div>
-        {message && <p className="text-muted-foreground text-sm">{message}</p>}
-      </div>
+  // Determine spinner size based on prop
+  const spinnerSize = {
+    sm: 'h-4 w-4',
+    md: 'h-8 w-8',
+    lg: 'h-12 w-12'
+  }[size];
+  
+  const spinnerContent = (
+    <div className="flex flex-col items-center justify-center gap-3">
+      <div className={`animate-spin rounded-full border-2 border-t-transparent border-primary ${spinnerSize}`} />
+      {message && (
+        <p className="text-muted-foreground">{message}</p>
+      )}
     </div>
   );
+  
+  if (fullscreen) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-50">
+        {spinnerContent}
+      </div>
+    );
+  }
+  
+  return spinnerContent;
 } 

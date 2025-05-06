@@ -16,7 +16,6 @@ import WelcomeStep from './WelcomeStep';
 import BusinessProfileStep from './BusinessProfileStep';
 import InventorySetupStep from './InventorySetupStep';
 import PaymentSetupStep from './PaymentSetupStep';
-import CompletionStep from './CompletionStep';
 
 export default function OnboardingWizard() {
   const { data: session } = useSession();
@@ -59,14 +58,14 @@ export default function OnboardingWizard() {
   // Handle automatic redirect after completion
   useEffect(() => {
     // If state is initialized and onboarding is complete, redirect to dashboard
-    if (!isLoading && state.isCompleted && completedSteps.includes('completion')) {
+    if (!isLoading && state.isCompleted) {
       const timer = setTimeout(() => {
-        router.push('/dashboard');
+        router.push('/');
       }, 1500);
       
       return () => clearTimeout(timer);
     }
-  }, [isLoading, state.isCompleted, completedSteps, router]);
+  }, [isLoading, state.isCompleted, router]);
   
   // Show loading spinner while initializing
   if (isLoading) {
@@ -79,10 +78,14 @@ export default function OnboardingWizard() {
       // Complete the step with data
       await completeStep(stepId, data);
       
-      // Move to next step (except for final step)
-      if (stepId !== 'completion') {
-        nextStep();
+      // If this is the final step (payment-setup), show success toast and prepare for redirect
+      if (stepId === 'payment-setup') {
+        toast.success("Setup complete! Redirecting to dashboard...");
+        return;
       }
+      
+      // Move to next step
+      nextStep();
     } catch (error) {
       console.error("Error completing step:", error);
       toast.error("Error saving progress", {
@@ -90,9 +93,7 @@ export default function OnboardingWizard() {
       });
       
       // Still move to next step to prevent getting stuck
-      if (stepId !== 'completion') {
-        nextStep();
-      }
+      nextStep();
     }
   };
   
@@ -211,15 +212,6 @@ export default function OnboardingWizard() {
                 onComplete={(data) => handleStepComplete('payment-setup', data)}
                 formData={currentStepData}
                 updateFormData={(data) => updateStepData('payment-setup', data)}
-                userId={session?.user?.id || ''}
-              />
-            )}
-            
-            {activeStep === 'completion' && (
-              <CompletionStep
-                onComplete={(data) => handleStepComplete('completion', data)}
-                formData={formData}
-                updateFormData={(data) => updateStepData('completion', data)}
                 userId={session?.user?.id || ''}
               />
             )}

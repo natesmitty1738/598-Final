@@ -138,7 +138,7 @@ export default function BusinessProfileForm() {
               value={formData.businessName}
               onChange={handleInputChange}
               required
-              className="w-full p-2 border rounded-md bg-background"
+              className="w-full px-4 py-2 border rounded-md bg-background"
             />
           </div>
           
@@ -152,7 +152,7 @@ export default function BusinessProfileForm() {
               name="industry"
               value={formData.industry || ''}
               onChange={handleInputChange}
-              className="w-full p-2 border rounded-md bg-background"
+              className="w-full px-4 py-2 border rounded-md bg-background"
             />
           </div>
           
@@ -166,7 +166,7 @@ export default function BusinessProfileForm() {
               name="address"
               value={formData.address || ''}
               onChange={handleInputChange}
-              className="w-full p-2 border rounded-md bg-background"
+              className="w-full px-4 py-2 border rounded-md bg-background"
             />
           </div>
           
@@ -180,7 +180,7 @@ export default function BusinessProfileForm() {
               name="city"
               value={formData.city || ''}
               onChange={handleInputChange}
-              className="w-full p-2 border rounded-md bg-background"
+              className="w-full px-4 py-2 border rounded-md bg-background"
             />
           </div>
           
@@ -194,7 +194,7 @@ export default function BusinessProfileForm() {
               name="state"
               value={formData.state || ''}
               onChange={handleInputChange}
-              className="w-full p-2 border rounded-md bg-background"
+              className="w-full px-4 py-2 border rounded-md bg-background"
             />
           </div>
           
@@ -208,7 +208,7 @@ export default function BusinessProfileForm() {
               name="zipCode"
               value={formData.zipCode || ''}
               onChange={handleInputChange}
-              className="w-full p-2 border rounded-md bg-background"
+              className="w-full px-4 py-2 border rounded-md bg-background"
             />
           </div>
           
@@ -222,7 +222,7 @@ export default function BusinessProfileForm() {
               name="country"
               value={formData.country || ''}
               onChange={handleInputChange}
-              className="w-full p-2 border rounded-md bg-background"
+              className="w-full px-4 py-2 border rounded-md bg-background"
             />
           </div>
           
@@ -236,7 +236,7 @@ export default function BusinessProfileForm() {
               name="phone"
               value={formData.phone || ''}
               onChange={handleInputChange}
-              className="w-full p-2 border rounded-md bg-background"
+              className="w-full px-4 py-2 border rounded-md bg-background"
             />
           </div>
           
@@ -250,7 +250,7 @@ export default function BusinessProfileForm() {
               name="website"
               value={formData.website || ''}
               onChange={handleInputChange}
-              className="w-full p-2 border rounded-md bg-background"
+              className="w-full px-4 py-2 border rounded-md bg-background"
               placeholder="https://example.com"
             />
           </div>
@@ -265,7 +265,7 @@ export default function BusinessProfileForm() {
               name="taxId"
               value={formData.taxId || ''}
               onChange={handleInputChange}
-              className="w-full p-2 border rounded-md bg-background"
+              className="w-full px-4 py-2 border rounded-md bg-background"
             />
           </div>
         </div>

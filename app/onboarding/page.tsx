@@ -24,7 +24,7 @@ export default function OnboardingPage() {
         if (data.completed) {
           // If onboarding is already completed, redirect to dashboard
           setOnboardingComplete(true);
-          router.push('/dashboard');
+          router.push('/');
         }
       } catch (error) {
         console.error('Error checking onboarding status:', error);

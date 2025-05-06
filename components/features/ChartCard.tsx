@@ -23,15 +23,15 @@ export default function ChartCard({
   description 
 }: ChartCardProps) {
   return (
-    <Card className={`${className}`}>
+    <Card className={`${className} h-full flex flex-col`}>
       <CardHeader className="pb-0">
         <CardTitle>{title}</CardTitle>
         {description && (
           <p className="text-sm text-muted-foreground">{description}</p>
         )}
       </CardHeader>
-      <CardContent className="pt-3 pb-4">
-        <div className="h-[350px] w-full">
+      <CardContent className="pt-3 pb-4 flex-1">
+        <div className="h-full w-full">
           {children}
         </div>
       </CardContent>

@@ -6,13 +6,14 @@ import { useRouter } from 'next/navigation';
 import { Check, ArrowRight, ArrowLeft, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { useToast } from '@/components/providers/ToastProvider';
 
 // Import shared form components
 import BusinessProfileForm, { BusinessProfileData } from '@/components/shared/BusinessProfileForm';
 import AccountSettingsForm, { AccountSettingsData } from '@/components/shared/AccountSettingsForm';
 import PaymentMethodsForm, { PaymentMethodsData } from '@/components/shared/PaymentMethodsForm';
 import ProductManagementForm, { ProductData } from '@/components/shared/ProductManagementForm';
-import NotificationPreferencesForm, { NotificationPreferencesData } from '@/components/shared/NotificationPreferencesForm';
+import NotificationsToggle, { NotificationPreferences } from '@/components/shared/NotificationsToggle';
 
 // Import welcome and completion components
 import WelcomeStep from './WelcomeStep';
@@ -52,7 +53,10 @@ export default function SetupWizard() {
   const [businessData, setBusinessData] = useState<Partial<BusinessProfileData>>({});
   const [productData, setProductData] = useState<ProductData[]>([]);
   const [paymentData, setPaymentData] = useState<Partial<PaymentMethodsData>>({});
-  const [notificationData, setNotificationData] = useState<Partial<NotificationPreferencesData>>({});
+  
+  // Extra state for toast preferences
+  const [notificationPreferences, setNotificationPreferences] = useState<NotificationPreferences | null>(null);
+  const { updatePreferences } = useToast();
   
   // Define the steps
   const steps: StepConfig[] = [
@@ -98,12 +102,11 @@ export default function SetupWizard() {
             if (data.formData.businessProfile) setBusinessData(data.formData.businessProfile);
             if (data.formData.products) setProductData(data.formData.products);
             if (data.formData.paymentMethods) setPaymentData(data.formData.paymentMethods);
-            if (data.formData.notificationPreferences) setNotificationData(data.formData.notificationPreferences);
           }
           
           // If onboarding is completed, redirect to dashboard
           if (data.completed) {
-            router.push('/dashboard');
+            router.push('/');
             return;
           }
         }
@@ -228,7 +231,7 @@ export default function SetupWizard() {
           
           toast.success('Setup complete! Redirecting to dashboard...');
           setTimeout(() => {
-            router.push('/dashboard');
+            router.push('/');
           }, 1500);
         }
       } else {
@@ -256,7 +259,11 @@ export default function SetupWizard() {
       case 'payment-setup':
         return { paymentMethods: paymentData };
       case 'notification-preferences':
-        return { notificationPreferences: notificationData };
+        return { notificationPreferences: notificationPreferences || {
+          success: true,
+          error: true,
+          info: true
+        }};
       default:
         return {};
     }
@@ -311,14 +318,15 @@ export default function SetupWizard() {
   };
   
   // Handle notification preferences form submission
-  const handleNotificationPreferencesSubmit = async (data: NotificationPreferencesData) => {
-    setNotificationData(data);
+  const handleNotificationPreferencesSubmit = async (data: NotificationPreferences) => {
     try {
-      await completeStep('notification-preferences', { notificationPreferences: data });
+      await updatePreferences(data);
+      setNotificationPreferences(data);
+      await completeStep('notification-preferences');
       nextStep();
-    } catch (error) {
-      console.error('Error saving notification preferences:', error);
-      toast.error('Failed to save notification preferences');
+    } catch (err) {
+      console.error('Error saving notification preferences:', err);
+      toast.error('Failed to save notification settings');
     }
   };
   
@@ -348,7 +356,7 @@ export default function SetupWizard() {
       
       // Redirect to dashboard after short delay
       setTimeout(() => {
-        router.push('/dashboard');
+        router.push('/');
       }, 2000);
     } catch (error) {
       console.error('Error completing onboarding:', error);
@@ -371,7 +379,7 @@ export default function SetupWizard() {
     const targetStepId = steps[index].id;
     const canNavigate = completedSteps.includes(targetStepId) || 
                         index === 0 || 
-                        completedSteps.includes(steps[index-1].id) ||
+                        completedSteps.includes(steps[index-1]?.id || '') ||
                         index === currentStepIndex + 1;
     
     if (canNavigate) {
@@ -385,7 +393,11 @@ export default function SetupWizard() {
   let stepContent;
   switch (activeStepId) {
     case 'welcome':
-      stepContent = <WelcomeStep onContinue={nextStep} />;
+      stepContent = <WelcomeStep onComplete={() => {
+        completeStep('welcome').then(() => {
+          nextStep();
+        });
+      }} userName={session?.user?.name} />;
       break;
     case 'account-settings':
       stepContent = <AccountSettingsForm 
@@ -416,11 +428,21 @@ export default function SetupWizard() {
       />;
       break;
     case 'notification-preferences':
-      stepContent = <NotificationPreferencesForm 
-        initialData={notificationData} 
-        onSubmit={handleNotificationPreferencesSubmit} 
-        loading={saving}
-      />;
+      stepContent = (
+        <div className="space-y-8">
+          <NotificationsToggle 
+            initialData={{
+              success: true,
+              error: true,
+              info: true
+            }}
+            onSubmit={handleNotificationPreferencesSubmit}
+            isWizardMode={true}
+            showTitle={true}
+            buttonText="Save & Continue"
+          />
+        </div>
+      );
       break;
     case 'completion':
       stepContent = <CompletionStep 
@@ -505,7 +527,10 @@ export default function SetupWizard() {
               
               <div className="flex space-x-4">
                 {/* Skip button for non-required steps */}
-                {!steps[currentStepIndex].required && activeStepId !== 'welcome' && activeStepId !== 'completion' && (
+                {!steps[currentStepIndex].required && 
+                 activeStepId !== 'welcome' && 
+                 activeStepId !== 'completion' && 
+                 activeStepId !== 'notification-preferences' && (
                   <Button
                     variant="ghost"
                     onClick={async () => {

@@ -1,9 +1,9 @@
 import './globals.css'
 import { Inter } from 'next/font/google'
-import { Toaster } from 'sonner';
 import { Metadata } from 'next'
 import { AuthProvider } from '@/components/providers/AuthProvider'
 import { ThemeProvider } from '@/components/providers/ThemeProvider'
+import { ToastProvider } from '@/components/providers/ToastProvider'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 
@@ -24,19 +24,20 @@ export default function RootLayout({
       <body className={`${inter.className} min-h-screen bg-background text-foreground flex flex-col`}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="light"
+          defaultTheme="dark"
           enableSystem={false}
-          themes={['light', 'dark']}
+          themes={['dark', 'light']}
           forcedTheme={undefined}
           disableTransitionOnChange
         >
           <AuthProvider>
-            <Header />
-            <main className="pt-20 flex-grow">
-              {children}
-            </main>
-            <Footer />
-            <Toaster position="top-right" />
+            <ToastProvider>
+              <Header />
+              <main className="pt-[64px] flex-grow">
+                {children}
+              </main>
+              <Footer />
+            </ToastProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

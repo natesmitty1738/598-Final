@@ -1,102 +1,91 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
-import prisma from '../prisma';
 import { authOptions } from '@/lib/auth';
 
-// type definition for notification preferences
-type NotificationPreference = {
-  id: string;
-  type: string;
-  description: string;
-  push: boolean;
-};
-
-// default preferences if none are found
-const defaultPreferences: NotificationPreference[] = [
-  {
-    id: 'new-order',
-    type: 'New Order',
-    description: 'Receive notifications when a new order is placed',
-    push: true
-  },
-  {
-    id: 'shipping-updates',
-    type: 'Shipping Updates',
-    description: 'Get notified about shipping status changes',
-    push: false
-  },
-  {
-    id: 'inventory-alerts',
-    type: 'Inventory Alerts',
-    description: 'Be alerted when inventory is low',
-    push: true
-  },
-  {
-    id: 'payment-confirmations',
-    type: 'Payment Confirmations',
-    description: 'Receive confirmations for payments',
-    push: false
-  },
-  {
-    id: 'marketing-promotions',
-    type: 'Marketing & Promotions',
-    description: 'Get updates about promotions and marketing opportunities',
-    push: false
-  }
-];
-
-// handle GET request to fetch notification preferences
+// Get notification preferences for the current user
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     
-    // check for authenticated user
     if (!session?.user) {
-      // Return default preferences even without auth to enable the UI to work
-      // In a real app with persistent storage, you would return 401
-      return NextResponse.json(defaultPreferences);
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // in a real app, you would fetch user-specific preferences from the database
-    // for example: const userPrefs = await prisma.notificationPreference.findMany({where: {userId: session.user.id}});
-    // if no user preferences found, return defaults
-    return NextResponse.json(defaultPreferences);
+    const notificationPreferences = await prisma.notificationPreference.findMany({
+      where: { userId: session.user.id },
+    });
+    
+    if (!notificationPreferences || notificationPreferences.length === 0) {
+      // Return default notification preferences if none exist
+      return NextResponse.json({
+        emailNotifications: true,
+        smsNotifications: false,
+        pushNotifications: false,
+        orderUpdates: true,
+        inventoryAlerts: true,
+        paymentNotifications: true,
+        marketingEmails: false
+      });
+    }
+    
+    return NextResponse.json(notificationPreferences[0]);
   } catch (error) {
     console.error('Error fetching notification preferences:', error);
-    return NextResponse.json({ error: 'Failed to fetch notification preferences' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to fetch notification preferences' },
+      { status: 500 }
+    );
   }
 }
 
-// handle PUT request to update notification preferences
-export async function PUT(request: NextRequest) {
+// Update notification preferences for the current user
+export async function PUT(request: Request) {
   try {
     const session = await getServerSession(authOptions);
-    const preferences = await request.json();
     
-    // check for authenticated user
     if (!session?.user) {
-      // log the attempt but return success to keep UI working
-      console.log('No authenticated user, but accepting preferences:', preferences);
-      return NextResponse.json({ success: true });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // in a real app, you would update the database
-    // for example:
-    // await prisma.notificationPreference.deleteMany({where: {userId: session.user.id}});
-    // await Promise.all(preferences.map(pref => 
-    //   prisma.notificationPreference.create({
-    //     data: {
-    //       ...pref,
-    //       userId: session.user.id
-    //     }
-    //   })
-    // ));
+    const data = await request.json();
     
-    console.log('Saved notification preferences for user:', session.user.id, preferences);
+    // Check if notification preferences exist
+    const existingPrefs = await prisma.notificationPreference.findFirst({
+      where: { userId: session.user.id },
+    });
     
-    return NextResponse.json({ success: true });
+    let notificationPreferences;
+    
+    if (existingPrefs) {
+      // Update existing preferences
+      notificationPreferences = await prisma.notificationPreference.update({
+        where: { id: existingPrefs.id },
+        data,
+      });
+    } else {
+      // Create new preferences
+      notificationPreferences = await prisma.notificationPreference.create({
+        data: {
+          // Only include valid fields
+          emailNotifications: data.emailNotifications,
+          smsNotifications: data.smsNotifications,
+          pushNotifications: data.pushNotifications,
+          orderUpdates: data.orderUpdates,
+          inventoryAlerts: data.inventoryAlerts,
+          paymentNotifications: data.paymentNotifications,
+          marketingEmails: data.marketingEmails,
+          userId: session.user.id,
+        },
+      });
+    }
+    
+    return NextResponse.json(notificationPreferences);
   } catch (error) {
-    console.error('Error saving notification preferences:', error);
-    return NextResponse.json({ error: 'Failed to save notification preferences' }, { status: 500 });
+    console.error('Error updating notification preferences:', error);
+    return NextResponse.json(
+      { error: 'Failed to update notification preferences' },
+      { status: 500 }
+    );
   }
 } 

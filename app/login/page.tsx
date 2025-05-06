@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { signIn } from 'next-auth/react';
 import { toast } from 'sonner';
+import { Input } from '@/components/ui/input';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -86,13 +87,13 @@ export default function LoginPage() {
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Email
               </label>
-              <input
+              <Input
                 id="email"
                 name="email"
                 type="email"
                 autoComplete="email"
                 required
-                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-500 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
+                className="mt-1"
               />
             </div>
 
@@ -100,13 +101,13 @@ export default function LoginPage() {
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                 Password
               </label>
-              <input
+              <Input
                 id="password"
                 name="password"
                 type="password"
                 autoComplete="current-password"
                 required
-                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-500 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
+                className="mt-1"
               />
             </div>
 

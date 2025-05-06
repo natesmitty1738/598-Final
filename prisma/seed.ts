@@ -10,7 +10,7 @@ async function main() {
     create: {
       email: 'test@example.com',
       name: 'Test User',
-      password: 'test123',
+      hashedPassword: 'test123',
       role: 'USER',
     },
   });

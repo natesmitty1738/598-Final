@@ -19,25 +19,46 @@
   :root {
     /* Light Mode: Official MerchX UI Colors - DO NOT MODIFY */
     --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
+    --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
+
+    /* Content wrapper variables */
+    --content-margin: 1.5rem;
+    --content-width: 1200px;
+    
+    /* For smaller screens */
+    @media (max-width: 1280px) {
+      --content-width: 1080px;
+    }
+    
+    @media (max-width: 1080px) {
+      --content-width: 960px;
+    }
+    
+    @media (max-width: 960px) {
+      --content-width: 90%;
+    }
+    
+    @media (max-width: 768px) {
+      --content-margin: 1rem;
+    }
 
     /* Brand Colors: Official MerchX Brand Palette - DO NOT MODIFY */
     --brand-blue: 214 100% 50%;
@@ -668,4 +689,27 @@
   100% {
     transform: translateY(-100%);
   }
+}
+
+/* Content wrapper - Vercel style container */
+.content-wrapper {
+  width: 100%;
+  max-width: var(--content-width);
+  padding-left: var(--content-margin);
+  padding-right: var(--content-margin);
+}
+
+/* Custom padding for consistent 24px spacing */
+.p-4\.5 {
+  padding: 24px;
+}
+
+.py-4\.5 {
+  padding-top: 24px;
+  padding-bottom: 24px;
+}
+
+.px-4\.5 {
+  padding-left: 24px;
+  padding-right: 24px;
 } 

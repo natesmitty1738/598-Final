@@ -85,11 +85,23 @@ export async function POST(request: Request) {
         const data = JSON.parse(paymentData.data);
         if (data.paymentMethods) {
           // Create or update payment config
+          // Map the incoming fields to match our schema
+          const paymentConfigData = {
+            acceptsCreditCards: data.paymentMethods.acceptCardPayments,
+            acceptsPayPal: false, // Default
+            acceptsCash: data.paymentMethods.acceptCash,
+            acceptsInvoice: data.paymentMethods.acceptInvoicePayments,
+            stripeConnected: data.paymentMethods.stripeConnected,
+            paypalConnected: false, // Default
+            defaultPaymentMethod: 'CASH',
+            stripeAccountId: data.paymentMethods.stripeAccountId || null
+          };
+          
           await prisma.paymentConfig.upsert({
             where: { userId: user.id },
-            update: data.paymentMethods,
+            update: paymentConfigData,
             create: {
-              ...data.paymentMethods,
+              ...paymentConfigData,
               userId: user.id
             }
           });
@@ -147,8 +159,7 @@ export async function POST(request: Request) {
       await prisma.onboarding.update({
         where: { id: user.onboarding.id },
         data: {
-          completed: true,
-          completedAt: new Date()
+          completed: true
         }
       });
       

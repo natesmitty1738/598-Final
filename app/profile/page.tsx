@@ -1,100 +1,112 @@
 'use client';
 
-import React, { useState } from 'react';
-import { ChevronRight, UserCircle, CreditCard, Bell, Building2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import React, { useState, useEffect } from 'react';
+import { UserCircle, CreditCard, Bell, Building2, Settings } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { useSession } from 'next-auth/react';
+import PageHeader from '@/components/layout/PageHeader';
+
 import BusinessProfileTab from './BusinessProfileTab';
 import AccountSettingsTab from './AccountSettingsTab';
 import PaymentMethodsTab from './PaymentMethodsTab';
 import NotificationPreferencesTab from './NotificationPreferencesTab';
 
-type SettingsTab = {
-  id: string;
-  title: string;
-  icon: React.ReactNode;
-  content: React.ReactNode;
-};
-
 export default function ProfilePage() {
-  // Define tabs with their content components
-  const tabs: SettingsTab[] = [
-    {
-      id: 'account',
-      title: 'Account Settings',
-      icon: <UserCircle className="h-4 w-4" />,
-      content: <AccountSettingsTab />,
+  const [activeTab, setActiveTab] = useState('account');
+  const { data: session } = useSession();
+  
+  // Define profile navigation items
+  const profileNavItems = [
+    { 
+      href: "/profile?tab=account", 
+      label: "Account Settings", 
+      icon: UserCircle 
     },
-    {
-      id: 'business',
-      title: 'Business Profile',
-      icon: <Building2 className="h-4 w-4" />,
-      content: <BusinessProfileTab />,
+    { 
+      href: "/profile?tab=business", 
+      label: "Business Profile", 
+      icon: Building2 
     },
-    {
-      id: 'payment',
-      title: 'Payment Methods',
-      icon: <CreditCard className="h-4 w-4" />,
-      content: <PaymentMethodsTab />,
+    { 
+      href: "/profile?tab=payment", 
+      label: "Payment Methods", 
+      icon: CreditCard 
     },
-    {
-      id: 'notifications',
-      title: 'Notifications',
-      icon: <Bell className="h-4 w-4" />,
-      content: <NotificationPreferencesTab />,
-    },
+    { 
+      href: "/profile?tab=notifications", 
+      label: "Notifications", 
+      icon: Bell 
+    }
   ];
 
-  // Use React's useState to track the active tab
-  const [activeTab, setActiveTab] = useState(tabs[0].id);
+  // Handle tab changes from URL query parameter
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get('tab');
+    if (tab && ['account', 'business', 'payment', 'notifications'].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, []);
 
-  // Handler for changing tabs
-  const handleTabChange = (tabId: string) => {
-    setActiveTab(tabId);
+  // Function to render content based on active tab
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'account':
+        return <AccountSettingsTab />;
+      case 'business':
+        return <BusinessProfileTab />;
+      case 'payment':
+        return <PaymentMethodsTab />;
+      case 'notifications':
+        return <NotificationPreferencesTab />;
+      default:
+        return <AccountSettingsTab />;
+    }
   };
 
   return (
-    <div className="container mx-auto py-6 md:py-10">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
-      </div>
-
-      <div className="flex flex-col md:flex-row md:space-x-8 lg:space-x-12">
-        {/* Sidebar with tabs */}
-        <aside className="md:w-1/4 mb-8 md:mb-0">
-          <nav className="flex flex-col space-y-1">
-            {tabs.map((tab) => (
-              <Button
-                key={tab.id}
-                variant="ghost"
-                className={cn(
-                  "justify-start px-4 py-2 h-auto text-sm",
-                  activeTab === tab.id
-                    ? "bg-muted font-medium text-foreground"
-                    : "text-muted-foreground"
-                )}
-                onClick={() => handleTabChange(tab.id)}
-              >
-                <div className="flex items-center">
-                  <span className="mr-2">{tab.icon}</span>
-                  <span>{tab.title}</span>
-                </div>
-                <ChevronRight className={cn(
-                  "ml-auto h-4 w-4 text-muted-foreground transition-transform",
-                  activeTab === tab.id ? "rotate-90" : ""
-                )} />
-              </Button>
-            ))}
+    <div className="w-full max-w-screen-xl mx-auto px-6 mb-6">
+      <PageHeader title="Settings" />
+      
+      <div className="flex flex-col sm:flex-row gap-6">
+        <Card className="w-full sm:w-64 h-fit">
+          <nav className="flex flex-col p-3 space-y-1">
+            {profileNavItems.map((item) => {
+              const isActive = activeTab === item.href.split('=')[1];
+              const Icon = item.icon;
+              return (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${
+                    isActive 
+                      ? "bg-muted text-foreground font-medium" 
+                      : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                  }`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    const tabName = item.href.split('=')[1];
+                    setActiveTab(tabName);
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('tab', tabName);
+                    window.history.pushState({}, '', url);
+                  }}
+                >
+                  <Icon className="h-4 w-4 opacity-70" />
+                  <span>{item.label}</span>
+                </a>
+              );
+            })}
           </nav>
-        </aside>
-
-        {/* Main content area */}
-        <main className="flex-1 md:max-w-3xl">
-          <div className="bg-card rounded-lg border shadow-sm p-6">
-            {/* Display content for active tab */}
-            {tabs.find(tab => tab.id === activeTab)?.content}
-          </div>
-        </main>
+        </Card>
+        
+        <div className="flex-1">
+          <Card>
+            <CardContent className="p-6">
+              {renderTabContent()}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTheme } from 'next-themes';
-import { Sun, Moon, ArrowUp, Github } from 'lucide-react';
+import { Sun, Moon, ArrowUp } from 'lucide-react';
 
 export default function Footer() {
   const { theme, setTheme } = useTheme();
@@ -51,10 +51,6 @@ export default function Footer() {
             <Link href="/terms" className="text-muted-foreground hover:text-foreground transition-colors">
               Terms
             </Link>
-            <a href="https://github.com" className="text-muted-foreground hover:text-foreground transition-colors flex items-center" target="_blank" rel="noopener noreferrer">
-              <Github className="h-3 w-3 mr-1" />
-              GitHub
-            </a>
           </div>
           
           {/* Actions - right aligned */}

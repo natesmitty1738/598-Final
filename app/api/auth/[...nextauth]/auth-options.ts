@@ -1,14 +1,11 @@
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { PrismaAdapter } from '@auth/prisma-adapter';
 import { PrismaClient } from '@prisma/client';
 import { compare } from 'bcryptjs';
 import '../types'; // Import type augmentation
-
-const prisma = new PrismaClient();
+import prisma from '@/lib/prisma'; // Use the singleton Prisma instance
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -27,11 +24,11 @@ export const authOptions: NextAuthOptions = {
           },
         });
 
-        if (!user || !user.password) {
+        if (!user || !user.hashedPassword) {
           throw new Error('User not found');
         }
 
-        const isPasswordValid = await compare(credentials.password, user.password);
+        const isPasswordValid = await compare(credentials.password, user.hashedPassword);
 
         if (!isPasswordValid) {
           throw new Error('Invalid password');

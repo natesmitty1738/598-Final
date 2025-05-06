@@ -4,72 +4,160 @@ import React, { useRef, useEffect, useState } from 'react';
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
 import { useTheme } from 'next-themes';
 
-interface AppleWatchGridProps {
-  dotColor?: string;
-  numDots?: number;
-  dotSize?: number;
+interface SupplyGridProps {
+  numLines?: number;
+  lineThickness?: number;
   children?: React.ReactNode;
 }
 
 export default function AppleWatchGrid({
-  numDots = 120,
-  dotSize = 4,
+  numLines = 12,
+  lineThickness = 1,
   children
-}: AppleWatchGridProps) {
+}: SupplyGridProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollY } = useScroll();
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme === 'dark';
   
-  // Determine dot color based on theme
-  const dotColor = isDarkMode ? 'rgba(255, 255, 255, 0.35)' : 'rgba(0, 0, 0, 0.25)';
+  // State to hold supply lines
+  const [lines, setLines] = useState<any[]>([]);
   
-  // Calculate grid dimensions - make it slightly rectangular
-  const gridSizeX = Math.ceil(Math.sqrt(numDots) * 1.5); // wider grid
-  const gridSizeY = Math.ceil(Math.sqrt(numDots) * 0.8); // shorter grid
-  
-  // State to hold dots (initialized empty to avoid hydration mismatch)
-  const [dots, setDots] = useState<any[]>([]);
-  
-  // Create dots only on client-side to avoid hydration errors
+  // Create supply lines only on client-side to avoid hydration errors
   useEffect(() => {
-    const dotsArray = [];
-    for (let y = 0; y < gridSizeY; y++) {
-      for (let x = 0; x < gridSizeX; x++) {
-        // Skip some dots for a more organic feel
-        if (Math.random() > 0.8) continue;
+    // Reduce the number of animations by using static positions for some elements
+    const linesArray = [];
+    
+    // Create horizontal lines (supply chains)
+    for (let i = 0; i < numLines; i++) {
+      // Randomize vertical position with some clustering
+      const positionY = (i / numLines) * 100 + (Math.random() - 0.5) * 8;
+      // Randomize width (percentage of screen width)
+      const width = 10 + Math.random() * 45; // increased max width for more coverage
+      // Randomize horizontal position
+      const positionX = Math.random() * (100 - width);
+      
+      // Parallax factor for Apple Watch-like scroll effect
+      const parallaxFactor = 0.5 + Math.random() * 1.5;
+      
+      // Create a main "supply line"
+      linesArray.push({
+        id: `h-line-${i}`,
+        positionX,
+        positionY,
+        width,
+        height: lineThickness,
+        isVertical: false,
+        // Animation properties - simplified
+        delay: i * 0.05,
+        speed: 0.2 + Math.random() * 0.2,
+        color: getRandomColor(isDarkMode),
+        hasNodes: Math.random() > 0.6, // more lines have node connections
+        parallaxFactor: parallaxFactor,
+        // Movement range for scroll effect
+        movementRange: {
+          x: (Math.random() - 0.5) * 15 * parallaxFactor,
+          y: (Math.random() - 0.5) * 8 * parallaxFactor,
+        }
+      });
+      
+      // Add vertical "branch" connections for only some lines (reduced)
+      if (Math.random() > 0.7) { // slightly more branches than before
+        const branchCount = 1 + Math.floor(Math.random()); // 1 or 2 branches
         
-        dotsArray.push({
-          id: `${x}-${y}`,
-          x,
-          y,
-          // Add some random offset to break the grid pattern
-          offsetX: (Math.random() - 0.5) * 10,
-          offsetY: (Math.random() - 0.5) * 10,
-          // Unique value for animation staggering
-          delay: (x + y) * 0.02,
-          // Random scale for visual interest
-          scale: 0.8 + Math.random() * 0.5
-        });
+        for (let j = 0; j < branchCount; j++) {
+          // Randomize position along parent line
+          const branchX = positionX + (width * (j + 1)) / (branchCount + 1);
+          // Randomize height
+          const branchHeight = 8 + Math.random() * 12;
+          // Randomize direction (up or down)
+          const direction = Math.random() > 0.5 ? -1 : 1;
+          const branchY = direction > 0 ? positionY : positionY - branchHeight;
+          
+          // Branch-specific parallax
+          const branchParallax = parallaxFactor * 0.8; // slightly reduced from parent
+          
+          linesArray.push({
+            id: `v-branch-${i}-${j}`,
+            positionX: branchX,
+            positionY: branchY,
+            width: lineThickness,
+            height: branchHeight,
+            isVertical: true,
+            delay: i * 0.05 + 0.1,
+            speed: 0.1,
+            color: getRandomColor(isDarkMode),
+            parentId: `h-line-${i}`,
+            parallaxFactor: branchParallax,
+            // Different movement pattern for branches
+            movementRange: {
+              x: (Math.random() - 0.5) * 10 * branchParallax,
+              y: direction * 10 * branchParallax, // extend in direction of branch
+            }
+          });
+          
+          // Add more nodes
+          if (Math.random() > 0.6) { // increased chance of nodes
+            const nodeSize = lineThickness * 3; // larger nodes
+            const nodeY = direction > 0 ? branchY + branchHeight - nodeSize : branchY;
+            
+            // Node-specific parallax
+            const nodeParallax = branchParallax * 1.2; // amplified for nodes
+            
+            linesArray.push({
+              id: `node-${i}-${j}`,
+              positionX: branchX - nodeSize / 2 + lineThickness / 2,
+              positionY: nodeY,
+              width: nodeSize,
+              height: nodeSize,
+              isNode: true,
+              delay: i * 0.05 + 0.2,
+              speed: 0.1,
+              color: getRandomColor(isDarkMode),
+              parentId: `v-branch-${i}-${j}`,
+              parallaxFactor: nodeParallax,
+              // Nodes have more pronounced movement
+              movementRange: {
+                x: (Math.random() - 0.5) * 15 * nodeParallax,
+                y: (Math.random() - 0.5) * 15 * nodeParallax,
+              }
+            });
+          }
+        }
       }
     }
-    setDots(dotsArray);
-  }, [gridSizeX, gridSizeY]);
+    
+    setLines(linesArray);
+  }, [numLines, lineThickness, isDarkMode]);
+  
+  // Helper function to get colors that fit the theme - increased opacity
+  function getRandomColor(isDark: boolean) {
+    const colors = isDark 
+      ? [
+          'rgba(59, 130, 246, 0.35)', // blue - more visible
+          'rgba(99, 102, 241, 0.35)', // indigo - more visible
+          'rgba(168, 85, 247, 0.35)', // purple - more visible
+        ]
+      : [
+          'rgba(59, 130, 246, 0.25)', // blue - more visible
+          'rgba(99, 102, 241, 0.25)', // indigo - more visible
+          'rgba(168, 85, 247, 0.25)', // purple - more visible
+        ];
+    
+    return colors[Math.floor(Math.random() * colors.length)];
+  }
   
   return (
     <div ref={containerRef} className="relative w-full h-full">
-      {/* Background dots */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        <div className="relative h-full w-full">
-          {dots.map((dot) => (
-            <DotWithAnimation 
-              key={dot.id}
-              dot={dot}
-              gridSizeX={gridSizeX}
-              gridSizeY={gridSizeY}
-              dotColor={dotColor}
-              dotSize={dotSize * dot.scale}
+      {/* Supply chain grid background - increased opacity */}
+      <div className="absolute inset-0 z-0 pointer-events-none opacity-90">
+        <div className="relative h-full w-full overflow-hidden">
+          {lines.map((line) => (
+            <SupplyLine 
+              key={line.id}
+              line={line}
               scrollY={scrollY}
+              isDarkMode={isDarkMode}
             />
           ))}
         </div>
@@ -83,100 +171,104 @@ export default function AppleWatchGrid({
   );
 }
 
-interface DotProps {
-  dot: {
+interface SupplyLineProps {
+  line: {
     id: string;
-    x: number;
-    y: number;
-    offsetX: number;
-    offsetY: number;
+    positionX: number;
+    positionY: number;
+    width: number;
+    height: number;
+    isVertical?: boolean;
+    isNode?: boolean;
     delay: number;
-    scale: number;
+    speed: number;
+    color: string;
+    parentId?: string;
+    hasNodes?: boolean;
+    parallaxFactor: number;
+    movementRange: {
+      x: number;
+      y: number;
+    };
   };
-  gridSizeX: number;
-  gridSizeY: number;
-  dotColor: string;
-  dotSize: number;
   scrollY: any;
+  isDarkMode: boolean;
 }
 
-function DotWithAnimation({ dot, gridSizeX, gridSizeY, dotColor, dotSize, scrollY }: DotProps) {
-  // Calculate dot position in percentages with slight offset for organic feel
-  const x = `${((dot.x + dot.offsetX) / gridSizeX) * 100}%`;
-  const y = `${((dot.y + dot.offsetY) / gridSizeY) * 100}%`;
+function SupplyLine({ line, scrollY, isDarkMode }: SupplyLineProps) {
+  // Set position in percentages
+  const x = `${line.positionX}%`;
+  const y = `${line.positionY}%`;
   
-  // Different animation movement patterns based on dot position
-  const isLeftSide = dot.x < gridSizeX / 2;
-  const isTopHalf = dot.y < gridSizeY / 2;
-  
-  // Create different animation ranges for different dots
-  // This creates the circular/elliptical motion around your content
-  let xRange = isLeftSide ? [-20, 20] : [20, -20];
-  let yRange = isTopHalf ? [-20, 20] : [20, -20];
-  
-  // Customize animation per dot's position for swirl effect
-  if (dot.x % 3 === 0) {
-    xRange = [xRange[0] * 1.5, xRange[1] * 1.5];
-  }
-  if (dot.y % 2 === 0) {
-    yRange = [yRange[0] * 1.2, yRange[1] * 1.2];
-  }
-  
-  // Use scroll position to drive animation
-  const xTransform = useTransform(
+  // Enhanced scroll-based animation with Apple Watch-like reactivity
+  // Transform scroll position to motion range specific to this line
+  const scrollXTransform = useTransform(
     scrollY,
-    [0, 1000],
-    xRange
+    [0, 500, 1000],
+    [-line.movementRange.x, 0, line.movementRange.x]
   );
   
-  const yTransform = useTransform(
+  const scrollYTransform = useTransform(
     scrollY,
-    [0, 1000],
-    yRange
+    [0, 500, 1000],
+    [-line.movementRange.y, 0, line.movementRange.y]
   );
   
-  // Add spring physics for smooth, bouncy movement
-  const springX = useSpring(xTransform, {
-    damping: 20,
+  // Add spring physics for smooth Apple Watch-like movement
+  const springX = useSpring(scrollXTransform, {
+    damping: 15,
     stiffness: 90,
-    mass: 0.8
+    mass: 0.5
   });
   
-  const springY = useSpring(yTransform, {
-    damping: 20,
+  const springY = useSpring(scrollYTransform, {
+    damping: 15,
     stiffness: 90,
-    mass: 0.8
+    mass: 0.5
   });
   
-  // Calculate opacity based on position
-  // Dots closer to center are more visible
-  const centerX = gridSizeX / 2;
-  const centerY = gridSizeY / 2;
-  const distanceFromCenter = Math.sqrt(
-    Math.pow(dot.x - centerX, 2) + Math.pow(dot.y - centerY, 2)
-  );
-  const maxDistance = Math.sqrt(Math.pow(centerX, 2) + Math.pow(centerY, 2));
-  // Use a fixed opacity value to avoid hydration mismatches
-  const baseOpacity = 0.3 + (1 - distanceFromCenter / maxDistance) * 0.7;
+  // Define the element style based on type
+  let elementStyle: React.CSSProperties = {
+    position: 'absolute',
+    left: x,
+    top: y,
+    width: `${line.width}%`,
+    height: line.isNode ? `${line.height}px` : `${line.height}px`,
+    backgroundColor: line.color,
+    borderRadius: line.isNode ? '2px' : '1px',
+  };
+  
+  // Add subtle glow effect in dark mode - increased glow
+  if (isDarkMode) {
+    elementStyle.boxShadow = `0 0 3px ${line.color}`;
+  }
+  
+  // Calculate hover styles
+  const hoverStyles = line.isNode ? {
+    scale: 1.3,
+    opacity: 1,
+    boxShadow: `0 0 5px ${line.color}`
+  } : {};
   
   return (
     <motion.div
-      className="absolute rounded-full"
       style={{
-        left: x,
-        top: y,
-        width: dotSize,
-        height: dotSize,
-        backgroundColor: dotColor,
+        ...elementStyle,
         x: springX,
         y: springY,
       }}
-      initial={{ opacity: 0 }}
+      initial={{ opacity: 0, scale: 0.9 }}
       animate={{ 
-        opacity: baseOpacity * 0.8, // Fixed value, no randomness
+        opacity: 0.85, // increased from 0.6
+        scale: 1,
         transition: {
-          delay: dot.delay
+          delay: line.delay,
+          duration: 0.6 // faster animation
         }
+      }}
+      whileHover={{
+        ...hoverStyles,
+        transition: { duration: 0.2 }
       }}
     />
   );

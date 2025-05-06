@@ -1,39 +1,32 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
 import prisma from '@/lib/prisma';
+import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
+// Get payment configuration for the current user
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
+    
+    if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    // Get payment configuration
+    
     const paymentConfig = await prisma.paymentConfig.findUnique({
-      where: { userId: user.id },
+      where: { userId: session.user.id },
     });
-
+    
     if (!paymentConfig) {
-      // Return default configuration if not found
+      // Return default payment config if none exists
       return NextResponse.json({
-        acceptCash: true,
-        acceptCardPayments: false,
-        acceptInvoicePayments: false,
-        stripeEnabled: false,
+        acceptsCreditCards: false,
+        acceptsPayPal: false,
         stripeConnected: false,
+        paypalConnected: false,
+        defaultPaymentMethod: 'CREDIT_CARD'
       });
     }
-
+    
     return NextResponse.json(paymentConfig);
   } catch (error) {
     console.error('Error fetching payment configuration:', error);
@@ -44,55 +37,45 @@ export async function GET() {
   }
 }
 
-export async function POST(request: Request) {
+// Update payment configuration for the current user
+export async function PUT(request: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
+    
+    if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
+    
     const data = await request.json();
-
-    // Validate required fields
-    const validFields = [
-      'acceptCash',
-      'acceptCardPayments',
-      'acceptInvoicePayments',
-      'stripeEnabled',
-      'stripeConnected',
-      'stripeAccountId',
-    ];
-
-    const sanitizedData = Object.keys(data).reduce((obj, key) => {
-      if (validFields.includes(key)) {
-        obj[key] = data[key];
-      }
-      return obj;
-    }, {} as Record<string, any>);
-
-    // Save payment configuration
-    const paymentConfig = await prisma.paymentConfig.upsert({
-      where: { userId: user.id },
-      update: sanitizedData,
-      create: {
-        ...sanitizedData,
-        userId: user.id,
-      },
+    
+    // Check if payment config exists
+    const existingConfig = await prisma.paymentConfig.findUnique({
+      where: { userId: session.user.id },
     });
-
+    
+    let paymentConfig;
+    
+    if (existingConfig) {
+      // Update existing config
+      paymentConfig = await prisma.paymentConfig.update({
+        where: { userId: session.user.id },
+        data,
+      });
+    } else {
+      // Create new config
+      paymentConfig = await prisma.paymentConfig.create({
+        data: {
+          ...data,
+          userId: session.user.id,
+        },
+      });
+    }
+    
     return NextResponse.json(paymentConfig);
   } catch (error) {
-    console.error('Error saving payment configuration:', error);
+    console.error('Error updating payment configuration:', error);
     return NextResponse.json(
-      { error: 'Failed to save payment configuration' },
+      { error: 'Failed to update payment configuration' },
       { status: 500 }
     );
   }

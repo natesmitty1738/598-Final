@@ -4,7 +4,68 @@ import prisma from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
 import { getDataKeyForStep } from '@/app/services/OnboardingAutomata';
 
-export async function GET(request: Request) {
+export async function GET() {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
+    // Check user's onboarding status from the onboarding table
+    const onboarding = await prisma.onboarding.findUnique({
+      where: { userId: session.user.id },
+      select: { completed: true }
+    });
+    
+    // If no onboarding record exists, consider it not completed
+    return NextResponse.json({ 
+      complete: onboarding?.completed || false
+    });
+  } catch (error) {
+    console.error('Error fetching onboarding status:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch onboarding status' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(request: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
+    const { complete } = await request.json();
+    
+    // Update onboarding status in the onboarding table
+    const onboarding = await prisma.onboarding.upsert({
+      where: { userId: session.user.id },
+      update: { completed: complete },
+      create: { 
+        userId: session.user.id, 
+        completed: complete,
+        completedSteps: []
+      },
+      select: { completed: true }
+    });
+    
+    return NextResponse.json({ 
+      complete: onboarding.completed
+    });
+  } catch (error) {
+    console.error('Error updating onboarding status:', error);
+    return NextResponse.json(
+      { error: 'Failed to update onboarding status' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET_OLD(request: Request) {
   try {
     // Get the current session
     const session = await getServerSession(authOptions);
